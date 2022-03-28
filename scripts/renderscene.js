@@ -54,6 +54,7 @@ function init() {
                     [3, 8],
                     [4, 9]
                 ],
+                //store rotation for animation
                 matrix: new Matrix(4, 4)
             }
         ]
@@ -93,6 +94,7 @@ function drawScene() {
     //  * clip in 3D
     //  * project to 2D
     //  * draw line
+
 }
 
 // Get outcode for vertex (parallel view volume)
