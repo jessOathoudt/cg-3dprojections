@@ -87,7 +87,7 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
-    
+    mat4x4Perspective(Vector3(44, 20, -16), Vector3(20, 20, -40), Vector3(0, 1, 0), [-19, 5, -10, 8, 12, 100])
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume

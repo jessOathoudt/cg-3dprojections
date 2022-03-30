@@ -13,13 +13,43 @@ function mat4x4Parallel(prp, srp, vup, clip) {
 
 // create a 4x4 matrix to the perspective projection / view matrix
 function mat4x4Perspective(prp, srp, vup, clip) {
-    // 1. translate PRP to origin
-    // 2. rotate VRC such that (u,v,n) align with (x,y,z)
-    // 3. shear such that CW is on the z-axis
-    // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
+    let mat4x4 = [[1, 0, 0, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 1, 0],
+                 [0, 0, 0, 1]];
 
+    // 1. translate PRP to origin
+    Tper = Mat4x4Translate(mat4x4, -prp.x, -prp.y, -prp.z);
+
+    // 2. rotate VRC such that (u,v,n) align with (x,y,z)
+    //prp-srp
+    // !! need to normalize !!
+    let n = (Vector3(prp.x-srp.x, prp.y-srp.y, prp.z-srp.y));
+    //vup * n
+    // !! need to normalize !!
+    let u = (vup.y*n.z - vup.z*n.y, vup.z*n.x-vup.x*n.z, vup.x*n.y-vup.y*n.x)
+    //n * u
+    // !! need to normalize !!
+    let v = (n.y*u.z-n.x*u.y, n.z*u.x-n.x*u.z, n.x*u.y-n.y*u.x)
+    Rper = perRotate(mat4x4, n, u, v)
+
+    // 3. shear such that CW is on the z-axis
+    //left+right/2, top+bottom/2, -near
+    let cw = Vector3((clip[0]+clip[1])/2, (clip[2]+clip[3])/2, -clip[4]);
+    //prp is at the origin so cw-0,0,0
+    let dop = cw
+    SHper = Mat4x4ShearXY(mat4x4, (-dop.x/dop.z), (-dop.y/dop.z))
+
+    // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
+    Sper = Mat4x4Scale(mat4x4,(2*clip[4]/((clip[0]-clip[1])*clip[5])), (2*clip[4]/((clip[2]-clip[3])*clip[5])), 1/(clip[5]) )
     // ...
+
+    //CLIP
+
     // let transform = Matrix.multiply([...]);
+    //let transform = Matrix.multiply([Sper], [SHper], [Rper], [Tper]);
+    //console.log(matrices.length)
+    //console.log(transform)
     // return transform;
 }
 
@@ -34,7 +64,10 @@ function mat4x4MPar() {
 // create a 4x4 matrix to project a perspective image on the z=-1 plane
 function mat4x4MPer() {
     let mper = new Matrix(4, 4);
-    // mper.values = ...;
+    mper.values = [[1, 0, 0, 0],
+                  [0, 1, 0, 0],
+                  [0, 0, 1, 0],
+                  [0, 0, -1, 0]];;
     return mper;
 }
 
@@ -50,6 +83,14 @@ function mat4x4Identity(mat4x4) {
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
                      [0, 0, 0, 1]];
+}
+
+function perRotate(mat4x4, n, u, v) {
+
+    mat4x4.values = [[u.x, u.y, u.z, 0],
+                    [v.x, v.y, v.z, 0],
+                    [n.x, n.y, n.z, 0],
+                    [0, 0, 0, 1]];
 }
 
 // set values of existing 4x4 matrix to the translate matrix
