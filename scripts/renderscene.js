@@ -165,6 +165,40 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
+    if(out0 | out1 == 0){
+       //trival accept 
+       drawLine(p0.x, p1.y, p1.x, p1.y);
+    }
+    if(out0 & out1 == 0 ){
+        if(out0 != 0){
+            //btwise & with left == 1
+            if(out0/32 != 0) {
+                out0=out0-32
+
+                //left
+            }
+            if(out0/16 != 0){
+                out0=out0-16
+
+            }
+            if(out0/8 != 0){
+                out0=out0-8
+                
+            }
+            if(out0/4 != 0){
+                out0=out0-4
+                
+            }
+            if(out0/2 != 0){
+                out0=out0-2
+                
+            }
+
+
+
+
+        }
+    }
     
     // TODO: implement clipping here!
     
