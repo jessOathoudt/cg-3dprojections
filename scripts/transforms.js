@@ -16,21 +16,21 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     // 1. translate PRP to origin
     Tper = new Matrix(4, 4)
-    Mat4x4Translate(Tper, -prp.x, -prp.y, -prp.z);
-    console.log(Tper)
+    Mat4x4Translate(Tper, -(prp.x), -(prp.y), -(prp.z));
+
+
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     //prp-srp
-    // !! need to normalize !!
     let n = (Vector3(prp.x-srp.x, prp.y-srp.y, prp.z-srp.y));
+    n.normalize();
     //vup * n
-    // !! need to normalize !!
     let u = Vector3(vup.y*n.z - vup.z*n.y, vup.z*n.x-vup.x*n.z, vup.x*n.y-vup.y*n.x)
+    u.normalize();
     //n * u
-    // !! need to normalize !!
     let v = Vector3(n.y*u.z-n.x*u.y, n.z*u.x-n.x*u.z, n.x*u.y-n.y*u.x)
+    u.normalize();
     Rper = new Matrix(4, 4)
     perRotate(Rper, n, u, v)
-    console.log(Rper)
 
     // 3. shear such that CW is on the z-axis
     //left+right/2, top+bottom/2, -near
@@ -39,11 +39,11 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let dop = cw
     SHper = new Matrix(4,4);
     Mat4x4ShearXY(SHper, (-dop.x/dop.z), (-dop.y/dop.z))
-    console.log(SHper)
+
 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
     Sper = new Matrix(4,4);
-    console.log(Sper)
+
     Mat4x4Scale(Sper,(2*clip[4]/((clip[0]-clip[1])*clip[5])), (2*clip[4]/((clip[2]-clip[3])*clip[5])), 1/(clip[5]) )
     // ...
 
@@ -51,9 +51,8 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 
     // let transform = Matrix.multiply([...]);
     let nPer = Matrix.multiply([Tper, Rper, SHper, Sper]);
-    //console.log(matrices.length)
-    console.log(transform)
-    // return transform;
+
+    return nPer;
 }
 
 // create a 4x4 matrix to project a parallel image on the z=0 plane

@@ -30,7 +30,7 @@ function init() {
             vup: Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]
         },
-        models: [
+        models: 
             {
                 type: 'generic',
                 vertices: [
@@ -57,7 +57,6 @@ function init() {
                 //store rotation for animation
                 matrix: new Matrix(4, 4)
             }
-        ]
     };
 
     // event handler for pressing arrow keys
@@ -86,14 +85,41 @@ function animate(timestamp) {
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
-    console.log(scene);
-    mat4x4Perspective(Vector3(44, 20, -16), Vector3(20, 20, -40), Vector3(0, 1, 0), [-19, 5, -10, 8, 12, 100])
-    // TODO: implement drawing here!
-    // For each model, for each edge
+    //mat4x4Perspective(Vector3(44, 20, -16), Vector3(20, 20, -40), Vector3(0, 1, 0), [-19, 5, -10, 8, 12, 100]);
+    nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    
+    for(let i=0; i<scene.models.edges.length; i++)
+    {
+        let edge = scene.models.edges[i];
+
+        for (let j=0; j<edge.length-1; j++)
+        {
+            console.log(scene.models.vertices[1])
+            let pt0 = scene.models.vertices[j].x;
+            let pt1 = scene.models.vertices[j+1].y;
+            let line;
+            line.pt0.x = pt0.x;
+            line.pt0.y = pt0.y;
+            line.pt0.z = pt0.z;
+            line.pt1.x = pt1.x;
+            line.pt1.y = pt1.y;
+            line.pt1.z = pt1.z;
+
+            // clipLinePerspective(line, clip[4]);
+            let transform = Multiply.matrix([mat4x4MPer, nPer]);
+            let pt0New = transform.mult(pt0);
+            let pt1New = transform.mult(pt1);
+            drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
+            console.log(pt0New.x, pt0New.y);
+
+
+        }
+    }
     //  * transform to canonical view volume
     //  * clip in 3D
     //  * project to 2D
     //  * draw line
+    
 
 }
 

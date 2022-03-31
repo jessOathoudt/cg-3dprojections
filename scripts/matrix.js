@@ -101,6 +101,8 @@ Matrix.multiply = function(matrices) {
 }
 
 
+
+
 class Vector extends Matrix {
     constructor(n) {
         var i;
