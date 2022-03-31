@@ -159,70 +159,91 @@ function clipLineParallel(line) {
 }
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
-function clipLinePerspective(line, z_min) {
+function clipLinePerspective(line, z_min)
+{
     let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
+
+
     if(out0 | out1 == 0)
     {
        result = line;
     }//trival accept
-    if(out0 & out1 == 0 )
+    else if(out0 & out1 == 0 )
     {
-        newPoint = getIntersectionPoint(out0, pt0);
+        newPoint = getIntersectionPoint(out0, line, z_min); //get intersection point based on out0
 
         if (newPoint != null)
         {
-            //recursive call with newPoint
-        }
+            newLine.pt0 = newPoint;
+            newLine.pt1 = line.pt1;
+
+            result = clipLinePerspective(newLine, z_min);
+        }//update pt0 and make recursive call if pt0 is outside of view volume
         else
         {
-            newPoint = getIntersectionPoint(out1, pt1);
-            //recursive call with newPoint
-        }
-        
-    }// not trival reject
+            newPoint = getIntersectionPoint(out1, line, z_min);
+            newLine.pt0 = line.pt0;
+            newLine.pt1 = newPoint;
+
+            result = clipLinePerspective(newLine, z_min);
+        }//update pt1 and make recursive call if pt0 is not outside of view volume
+    }//not trival reject
 
     
     return result;
 }
 
-function getIntersectionPoint(outcode, currentPoint)
+function getIntersectionPoint(outcode, line, z_min)
 {
+    t = null;
+    dx = line.pt1.x - line.pt0.x;
+    dy = line.pt1.y - line.pt0.y;
+    dz = line.pt1.z - line.pt0.z;
 
+    //calculate t based on outcode
     if (outcode & LEFT != 0)
     {
-        
+        t = (line.pt0.z - line.pt0.x) / (dx-dz);
     }
-    if (outcode & RIGHT != 0)
+    else if (outcode & RIGHT != 0)
     {
-        
+        t = (line.pt0.x + line.pt0.z) / (dx + dx) * -1;
     }
-    if (outcode & BOTTOM != 0)
+    else if (outcode & BOTTOM != 0)
     {
-        
+        t = (line.pt0.z - line.pt0.y) / (dy - dz);
     }
-    if(outcode & TOP != 0)
+    else if(outcode & TOP != 0)
     {
-        
+        t = (line.pt0.y + line.pt0.z) / (dy + dz) * -1;
     }
-    if (outcode & FAR != 0)
+    else if (outcode & FAR != 0)
     {
-        
+        t = -1 * (line.pt0.z + 1) / dz;
     }
-    if (outcode & NEAR != 0)
+    else if (outcode & NEAR != 0)
     {
-        
+        t = (z_min - line.pt0.z) / (-1 * dz);
     }
 
-    return null;
-}
+    if (t != null)
+    {
+        //calculate new intersectionPoint based on t
+        intersectionPoint.x = (1 - t) * line.pt0.x + t * line.pt1.x;
+        intersectionPoint.y = (1 - t) * line.pt0.y + t * line.pt1.y;
+        intersectionPoint.z = (1 - t) * line.pt0.z + t * line.pt1.z;
 
-function findIntersection(line, plane)
-{
-
+        return intersectionPoint;
+    }
+    else
+    {
+        //return null if no intersection point is found
+        return null;
+    }
 }
 
 // Called when user presses a key on the keyboard down 
