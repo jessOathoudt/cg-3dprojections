@@ -165,44 +165,64 @@ function clipLinePerspective(line, z_min) {
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-    if(out0 | out1 == 0){
-       //trival accept 
-       drawLine(p0.x, p1.y, p1.x, p1.y);
-    }
-    if(out0 & out1 == 0 ){
-        if(out0 != 0){
-            //btwise & with left == 1
-            if(out0/32 != 0) {
-                out0=out0-32
+    if(out0 | out1 == 0)
+    {
+       result = line;
+    }//trival accept
+    if(out0 & out1 == 0 )
+    {
+        newPoint = getIntersectionPoint(out0, pt0);
 
-                //left
-            }
-            if(out0/16 != 0){
-                out0=out0-16
-
-            }
-            if(out0/8 != 0){
-                out0=out0-8
-                
-            }
-            if(out0/4 != 0){
-                out0=out0-4
-                
-            }
-            if(out0/2 != 0){
-                out0=out0-2
-                
-            }
-
-
-
-
+        if (newPoint != null)
+        {
+            //recursive call with newPoint
         }
-    }
-    
-    // TODO: implement clipping here!
+        else
+        {
+            newPoint = getIntersectionPoint(out1, pt1);
+            //recursive call with newPoint
+        }
+        
+    }// not trival reject
+
     
     return result;
+}
+
+function getIntersectionPoint(outcode, currentPoint)
+{
+
+    if (outcode & LEFT != 0)
+    {
+        
+    }
+    if (outcode & RIGHT != 0)
+    {
+        
+    }
+    if (outcode & BOTTOM != 0)
+    {
+        
+    }
+    if(outcode & TOP != 0)
+    {
+        
+    }
+    if (outcode & FAR != 0)
+    {
+        
+    }
+    if (outcode & NEAR != 0)
+    {
+        
+    }
+
+    return null;
+}
+
+function findIntersection(line, plane)
+{
+
 }
 
 // Called when user presses a key on the keyboard down 
