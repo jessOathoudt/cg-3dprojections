@@ -17,20 +17,24 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     // 1. translate PRP to origin
     Tper = new Matrix(4, 4)
     Mat4x4Translate(Tper, -(prp.x), -(prp.y), -(prp.z));
-
+    //stage 1 = good
 
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     //prp-srp
-    let n = (Vector3(prp.x-srp.x, prp.y-srp.y, prp.z-srp.y));
+    let n = (Vector3(prp.x-srp.x, prp.y-srp.y, prp.z-srp.z));
     n.normalize();
+    //n = good
     //vup * n
     let u = Vector3(vup.y*n.z - vup.z*n.y, vup.z*n.x-vup.x*n.z, vup.x*n.y-vup.y*n.x)
     u.normalize();
+    //u = good
     //n * u
-    let v = Vector3(n.y*u.z-n.x*u.y, n.z*u.x-n.x*u.z, n.x*u.y-n.y*u.x)
-    u.normalize();
+    let v = Vector3(n.y*u.z - n.z*u.y, n.z*u.x-n.x*u.z, n.x*u.y-n.y*u.x)
+    v.normalize();
+    //v = good
     Rper = new Matrix(4, 4)
     perRotate(Rper, n, u, v)
+    // stage 2 = good
 
     // 3. shear such that CW is on the z-axis
     //left+right/2, top+bottom/2, -near
@@ -39,19 +43,20 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let dop = cw
     SHper = new Matrix(4,4);
     Mat4x4ShearXY(SHper, (-dop.x/dop.z), (-dop.y/dop.z))
-
+    // stage 3 = good
 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
     Sper = new Matrix(4,4);
-
-    Mat4x4Scale(Sper,(2*clip[4]/((clip[0]-clip[1])*clip[5])), (2*clip[4]/((clip[2]-clip[3])*clip[5])), 1/(clip[5]) )
+    
+    Mat4x4Scale(Sper,((2*clip[4])/((clip[1]-clip[0])*clip[5])), (2*clip[4]/((clip[3]-clip[2])*clip[5])), 1/(clip[5]) )
     // ...
+    // stage 4 = good
 
     //CLIP
 
     // let transform = Matrix.multiply([...]);
-    let nPer = Matrix.multiply([Tper, Rper, SHper, Sper]);
-
+    let nPer = Matrix.multiply([Sper, SHper, Rper, Tper]);
+    // nPer = good
     return nPer;
 }
 
