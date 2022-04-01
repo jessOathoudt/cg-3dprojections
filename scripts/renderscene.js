@@ -28,7 +28,7 @@ function init() {
             prp: Vector3(0, 10, -5),//Vector3(44, 20, -16),
             srp: Vector3(20, 15, -40),//Vector3(20, 20, -40),
             vup: Vector3(1, 1, 0),//Vector3(0, 1, 0),
-            clip: [-12, 6, -12, 6, 10, 100] //[-19, 5, -10, 8, 12, 100]
+            clip: [-12, 6, -12, 6, -10, 100] //[-19, 5, -10, 8, 12, 100]
         },
         models: 
             {
@@ -101,22 +101,14 @@ function drawScene() {
 
         for (let j=0; j<edge.length-1; j++)
         {
+            console.log("edge " + edge[j] + ", " + edge[j+1]);
             let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
             let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
-            //pt0 and pt1 are good
-
-            //clipping
-
-            //need to figure out how we are storing line
-            let line = {"pt0": pt0, "pt1": pt1};
-            let newLine = clipLinePerspective(line, scene.view.clip[4]);
-
+            
 
             //multiplying new points
-            let pt0New = Matrix.multiply([transform, Vector4(newLine.pt0.x, newLine.pt0.y, newLine.pt0.z, pt0.w)]);
-            let pt1New = Matrix.multiply([transform, Vector4(newLine.pt1.x, newLine.pt1.y, newLine.pt1.z, pt1.w)]);
-            // let pt0New = Matrix.multiply([transform, pt0]);
-            // let pt1New = Matrix.multiply([transform, pt1]);
+            let pt0New = Matrix.multiply([transform, pt0]);
+            let pt1New = Matrix.multiply([transform, pt1]);
             //pt0New and pt1New are good
 
             pt0New.x = pt0New.x/pt0New.w;
@@ -131,16 +123,21 @@ function drawScene() {
                         0, view.height/2, 0, view.height/2,
                         0, 0, 1, 0,
                         0, 0, 0, 1]);
-            
+                
             pt0New = Matrix.multiply([V, pt0New]);
-            pt1New = Matrix.multiply([V, pt1New]);    
+            pt1New = Matrix.multiply([V, pt1New]);  
+            
+            letline = {"pt0": pt0New, "pt1": pt1New};
+            // let newLine = clipLinePerspective(line, scene.view.clip[4]);
+            // if (newLine != null)
+            // {
+            //     pt0New = newLine.pt0;
+            //     pt1new = newLine.pt1;
+            // }
             //not goint to see anything because its out of view
             drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
-            console.log(pt0New.x);
-            console.log(pt1New.y)
+            
         }
-
-
     }
 }
 
@@ -208,20 +205,20 @@ function clipLineParallel(line) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min)
 {
-    
     let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
+    console.log((out0 | out1));
+    console.log((out0 & out1));
 
-    if(out0 | out1 == 0)
+    if((out0 | out1) == 0)
     {
-       result = line;
+        result = line;
     }//trival accept
-
     //investigate further
-    else if(out0 & out1 == 0 )
+    else if((out0 & out1) == 0 )
     {
         let newPoint = getIntersectionPoint(out0, line, z_min); //get intersection point based on out0
 
