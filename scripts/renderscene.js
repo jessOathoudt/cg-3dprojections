@@ -85,6 +85,11 @@ function animate(timestamp) {
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
+    //  * transform to canonical view volume
+    //  * clip in 3D
+    //  * project to 2D
+    //  * draw line
+
     //mat4x4Perspective(Vector3(44, 20, -16), Vector3(20, 20, -40), Vector3(0, 1, 0), [-19, 5, -10, 8, 12, 100]);
     let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
     let transform = Matrix.multiply([mat4x4MPer(), nPer]);
@@ -100,31 +105,23 @@ function drawScene() {
             let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
             //pt0 and pt1 are good
 
+            //clipping
+
+            //need to figure out how we are storing line
+            let line = 
+            clipLinePerspective(line, scene.view.clip[4]);
 
 
-            //console.log(pt0.x)
-            //line.pt0.x = pt0.x;
-            //line.pt0.y = pt0.y;
-            //line.pt0.z = pt0.z;
-            //line.pt1.x = pt1.x;
-            //line.pt1.y = pt1.y;
-            //line.pt1.z = pt1.z;
-
-            //clipLinePerspective(line, scene.view.clip[4]);
-            
-
-
+            //multiplying new points
             let pt0New = Matrix.multiply([transform, pt0]);
             let pt1New = Matrix.multiply([transform, pt1]);
             //pt0New and pt1New are good
-
 
             pt0New.x = pt0New.x/pt0New.w;
             pt0New.y = pt0New.y/pt0New.w
             pt1New.x = pt1New.x/pt1New.w;
             pt1New.y = pt1New.y/pt1New.w
             //These are good^
-
 
             //transform to regular units
             let V = new Matrix(4,4);
@@ -135,12 +132,8 @@ function drawScene() {
             
             pt0New = Matrix.multiply([V, pt0New]);
             pt1New = Matrix.multiply([V, pt1New]);    
-            console.log(pt0New);
             //not goint to see anything because its out of view
             drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
-            
-
-
         }
         
 
@@ -148,10 +141,6 @@ function drawScene() {
 
 
     }
-    //  * transform to canonical view volume
-    //  * clip in 3D
-    //  * project to 2D
-    //  * draw line
 }
 
 // Get outcode for vertex (parallel view volume)
@@ -229,6 +218,8 @@ function clipLinePerspective(line, z_min)
     {
        result = line;
     }//trival accept
+
+    //investigate further
     else if(out0 & out1 == 0 )
     {
         newPoint = getIntersectionPoint(out0, line, z_min); //get intersection point based on out0
