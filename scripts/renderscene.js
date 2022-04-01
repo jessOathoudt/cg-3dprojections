@@ -108,13 +108,15 @@ function drawScene() {
             //clipping
 
             //need to figure out how we are storing line
-            let line = 
-            clipLinePerspective(line, scene.view.clip[4]);
+            let line = {"pt0": pt0, "pt1": pt1};
+            let newLine = clipLinePerspective(line, scene.view.clip[4]);
 
 
             //multiplying new points
-            let pt0New = Matrix.multiply([transform, pt0]);
-            let pt1New = Matrix.multiply([transform, pt1]);
+            let pt0New = Matrix.multiply([transform, Vector4(newLine.pt0.x, newLine.pt0.y, newLine.pt0.z, pt0.w)]);
+            let pt1New = Matrix.multiply([transform, Vector4(newLine.pt1.x, newLine.pt1.y, newLine.pt1.z, pt1.w)]);
+            // let pt0New = Matrix.multiply([transform, pt0]);
+            // let pt1New = Matrix.multiply([transform, pt1]);
             //pt0New and pt1New are good
 
             pt0New.x = pt0New.x/pt0New.w;
@@ -134,10 +136,9 @@ function drawScene() {
             pt1New = Matrix.multiply([V, pt1New]);    
             //not goint to see anything because its out of view
             drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
+            console.log(pt0New.x);
+            console.log(pt1New.y)
         }
-        
-
-
 
 
     }
@@ -158,10 +159,10 @@ function outcodeParallel(vertex) {
     else if (vertex.y > (1.0 + FLOAT_EPSILON)) {
         outcode += TOP;
     }
-    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+    if (vertex.z < (-1.0 - FLOAT_EPSILON)) {
         outcode += FAR;
     }
-    else if (vertex.x > (0.0 + FLOAT_EPSILON)) {
+    else if (vertex.z > (0.0 + FLOAT_EPSILON)) {
         outcode += NEAR;
     }
     return outcode;
@@ -182,10 +183,10 @@ function outcodePerspective(vertex, z_min) {
     else if (vertex.y > (-vertex.z + FLOAT_EPSILON)) {
         outcode += TOP;
     }
-    if (vertex.x < (-1.0 - FLOAT_EPSILON)) {
+    if (vertex.z < (-1.0 - FLOAT_EPSILON)) {
         outcode += FAR;
     }
-    else if (vertex.x > (z_min + FLOAT_EPSILON)) {
+    else if (vertex.z > (z_min + FLOAT_EPSILON)) {
         outcode += NEAR;
     }
     return outcode;
@@ -207,12 +208,12 @@ function clipLineParallel(line) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min)
 {
+    
     let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-
 
     if(out0 | out1 == 0)
     {
@@ -222,10 +223,11 @@ function clipLinePerspective(line, z_min)
     //investigate further
     else if(out0 & out1 == 0 )
     {
-        newPoint = getIntersectionPoint(out0, line, z_min); //get intersection point based on out0
+        let newPoint = getIntersectionPoint(out0, line, z_min); //get intersection point based on out0
 
         if (newPoint != null)
         {
+            let newLine = line;
             newLine.pt0 = newPoint;
             newLine.pt1 = line.pt1;
 
@@ -234,6 +236,8 @@ function clipLinePerspective(line, z_min)
         else
         {
             newPoint = getIntersectionPoint(out1, line, z_min);
+
+            let newLine = line;
             newLine.pt0 = line.pt0;
             newLine.pt1 = newPoint;
 
@@ -281,9 +285,7 @@ function getIntersectionPoint(outcode, line, z_min)
     if (t != null)
     {
         //calculate new intersectionPoint based on t
-        intersectionPoint.x = (1 - t) * line.pt0.x + t * line.pt1.x;
-        intersectionPoint.y = (1 - t) * line.pt0.y + t * line.pt1.y;
-        intersectionPoint.z = (1 - t) * line.pt0.z + t * line.pt1.z;
+        let intersectionPoint = {"x": (1 - t) * line.pt0.x + t * line.pt1.x, "y": (1 - t) * line.pt0.y + t * line.pt1.y, "z": (1 - t) * line.pt0.z + t * line.pt1.z};
 
         return intersectionPoint;
     }
