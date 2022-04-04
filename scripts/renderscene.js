@@ -273,7 +273,7 @@ function clipLineParallel(line)
      else if((out0 & out1) == 0)
      {
          //console.log("not reject")
-         let newPoint = getIntersectionPoint(out0, line,0); //get intersection point based on out0
+         let newPoint = getIntersectionPointParallel(out0, line); //get intersection point based on out0
  
          if (newPoint != null)
          {
@@ -285,7 +285,7 @@ function clipLineParallel(line)
          }//update pt0 and make recursive call if pt0 is outside of view volume
          else
          {
-             newPoint = getIntersectionPoint(out1, line,0);
+             newPoint = getIntersectionPointParallel(out1, line);
  
              let newLine = line;
              newLine.pt0 = line.pt0;
@@ -321,7 +321,7 @@ function clipLinePerspective(line, z_min)
     else if((out0 & out1) == 0)
     {
         // console.log("not reject")
-        let newPoint = getIntersectionPoint(out0, line, z_min); //get intersection point based on out0
+        let newPoint = getIntersectionPointPerspective(out0, line, z_min); //get intersection point based on out0
 
         if (newPoint != null)
         {
@@ -333,7 +333,7 @@ function clipLinePerspective(line, z_min)
         }//update pt0 and make recursive call if pt0 is outside of view volume
         else
         {
-            newPoint = getIntersectionPoint(out1, line, z_min);
+            newPoint = getIntersectionPointPerspective(out1, line, z_min);
 
             let newLine = line;
             newLine.pt0 = line.pt0;
@@ -349,7 +349,8 @@ function clipLinePerspective(line, z_min)
 }
 
 
-function getIntersectionPoint(outcode, line, z_min)
+//get perspective intersection point based on outcode, line, and z_min
+function getIntersectionPointPerspective(outcode, line, z_min)
 {
     t = null;
     dx = line.pt1.x - line.pt0.x;
@@ -399,6 +400,13 @@ function getIntersectionPoint(outcode, line, z_min)
         //return null if no intersection point is found
         return null;
     }
+}
+
+
+//get parallel intersection point based on  outcode and line
+function getIntersectionPointParallel(outcode, line)
+{
+
 }
 
 // Called when user presses a key on the keyboard down 
