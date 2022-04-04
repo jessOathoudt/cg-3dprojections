@@ -25,7 +25,7 @@ function init() {
     scene = {
         view: {
             type: 'perspective',
-            prp: Vector3(20, 20, -16),//Vector3(44, 20, -16),
+            prp: Vector3(44, 20, -16),//Vector3(44, 20, -16),
             srp: Vector3(20, 20, -40),//Vector3(20, 20, -40),
             vup: Vector3(0, 1, 0),//Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100] //[-19, 5, -10, 8, 12, 100]
@@ -296,25 +296,73 @@ function getIntersectionPoint(outcode, line, z_min)
 }
 
 // Called when user presses a key on the keyboard down 
-function onKeyDown(event) {
-    switch (event.keyCode) {
+function onKeyDown(event)
+{
+    let n = scene.view.prp.cross(scene.view.srp);
+    n.normalize();
+    let u = scene.view.vup.cross(n);
+    u.normalize();
+    let v = n.cross(u);
+    v.normalize();
+    console.log(n, u, v)
+    
+    switch (event.keyCode)
+    {
         case 37: // LEFT Arrow
             console.log("left");
             break;
         case 39: // RIGHT Arrow
+
+
             console.log("right");
             break;
         case 65: // A key
+            scene.view.prp.x = scene.view.prp.x + u.x;
+            scene.view.srp.x = scene.view.srp.x + u.x;
+            scene.view.prp.y = scene.view.prp.y + u.y;
+            scene.view.srp.y = scene.view.srp.y + u.y;
+            scene.view.prp.z = scene.view.prp.z + u.z;
+            scene.view.srp.z = scene.view.srp.z + u.z;
+
             console.log("A");
+            clearScene();
+            drawScene();
             break;
         case 68: // D key
+            scene.view.prp.x = scene.view.prp.x - u.x;
+            scene.view.srp.x = scene.view.srp.x - u.x;
+            scene.view.prp.y = scene.view.prp.y - u.y;
+            scene.view.srp.y = scene.view.srp.y - u.y;
+            scene.view.prp.z = scene.view.prp.z - u.z;
+            scene.view.srp.z = scene.view.srp.z - u.z;
+            
             console.log("D");
+            clearScene();
+            drawScene();
             break;
         case 83: // S key
+            scene.view.prp.x = scene.view.prp.x - n.x;
+            scene.view.srp.x = scene.view.srp.x - n.x;
+            scene.view.prp.y = scene.view.prp.y - n.y;
+            scene.view.srp.y = scene.view.srp.y - n.y;
+            scene.view.prp.z = scene.view.prp.z - n.z;
+            scene.view.srp.z = scene.view.srp.z - n.z;
+
             console.log("S");
+            clearScene();
+            drawScene();
             break;
         case 87: // W key
+            scene.view.prp.x = scene.view.prp.x + n.x;
+            scene.view.srp.x = scene.view.srp.x + n.x;
+            scene.view.prp.y = scene.view.prp.y + n.y;
+            scene.view.srp.y = scene.view.srp.y + n.y;
+            scene.view.prp.z = scene.view.prp.z + n.z;
+            scene.view.srp.z = scene.view.srp.z + n.z;
+
             console.log("W");
+            clearScene();
+            drawScene();
             break;
     }
 }
@@ -368,4 +416,10 @@ function drawLine(x1, y1, x2, y2) {
     ctx.fillStyle = '#FF0000';
     ctx.fillRect(x1 - 2, y1 - 2, 4, 4);
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
+}
+
+
+function clearScene()
+{
+    ctx.clearRect(0, 0, view.width, view.height);
 }
