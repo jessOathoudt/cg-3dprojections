@@ -1,22 +1,50 @@
 // create a 4x4 matrix to the parallel projection / view matrix
 function mat4x4Parallel(prp, srp, vup, clip) {
     // 1. translate PRP to origin
+    Tper = new Matrix(4, 4)
+    Mat4x4Translate(Tper, -(prp.x), -(prp.y), -(prp.z));
+    //console.log(Tper, "t");
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
+    let n = (Vector3(prp.x-srp.x, prp.y-srp.y, prp.z-srp.z));
+    n.normalize();
+    let u = Vector3(vup.y*n.z - vup.z*n.y, vup.z*n.x-vup.x*n.z, vup.x*n.y-vup.y*n.x)
+    u.normalize();
+    let v = Vector3(n.y*u.z - n.z*u.y, n.z*u.x-n.x*u.z, n.x*u.y-n.y*u.x)
+    v.normalize();
+    Rpar = new Matrix(4,4);
+    perRotate(Rpar, n, u, v)
+    //console.log(Rpar);
     // 3. shear such that CW is on the z-axis
+    let cw = Vector3((clip[0]+clip[1])/2, (clip[2]+clip[3])/2, -clip[4]);
+    let dop = cw
+    SHper = new Matrix(4,4);
+    Mat4x4ShearXY(SHper, (-dop.x/dop.z), (-dop.y/dop.z))
+    //console.log(SHper);
     // 4. translate near clipping plane to origin
+    Tpar = new Matrix(4,4);
+    parTranslate(Tpar);
+    //console.log(Tpar);
     // 5. scale such that view volume bounds are ([-1,1], [-1,1], [-1,0])
-
+    let sparx = 2/(clip[0]-clip[1])
+    let spary = 2/(clip[2]-clip[3])
+    let sparz = 1/(clip[5])
+    sPar = new Matrix(4,4);
+    Mat4x4Scale(sPar, sparx, spary, sparz);
     // ...
     // let transform = Matrix.multiply([...]);
+    let nPar = Matrix.multiply([sPar, Tpar, SHper, Rpar, Tper]);
+    //console.log(nPar);
+    return nPar;
     // return transform;
 }
 
 // create a 4x4 matrix to the perspective projection / view matrix
 function mat4x4Perspective(prp, srp, vup, clip) {
-
+    //console.log("here");
     // 1. translate PRP to origin
     Tper = new Matrix(4, 4)
     Mat4x4Translate(Tper, -(prp.x), -(prp.y), -(prp.z));
+    //console.log(Tper);
     //stage 1 = good
 
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
@@ -34,6 +62,7 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     //v = good
     Rper = new Matrix(4, 4)
     perRotate(Rper, n, u, v)
+    //console.log(Rper);
     // stage 2 = good
 
     // 3. shear such that CW is on the z-axis
@@ -43,20 +72,24 @@ function mat4x4Perspective(prp, srp, vup, clip) {
     let dop = cw
     SHper = new Matrix(4,4);
     Mat4x4ShearXY(SHper, (-dop.x/dop.z), (-dop.y/dop.z))
+    //console.log(SHper);
     // stage 3 = good
 
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
     Sper = new Matrix(4,4);
     
     Mat4x4Scale(Sper,((2*clip[4])/((clip[1]-clip[0])*clip[5])), (2*clip[4]/((clip[3]-clip[2])*clip[5])), 1/(clip[5]) )
+    //console.log(Sper);
     // ...
     // stage 4 = good
+
 
     //CLIP
 
     // let transform = Matrix.multiply([...]);
     let nPer = Matrix.multiply([Sper, SHper, Rper, Tper]);
     // nPer = good
+    //console.log(nPer);
     return nPer;
 }
 
@@ -64,6 +97,10 @@ function mat4x4Perspective(prp, srp, vup, clip) {
 function mat4x4MPar() {
     // 3D to 2D
     let mpar = new Matrix(4, 4);
+    mpar.values= [[1,0,0,0],
+                [0,1,0,0],
+                [0,0,0,0],
+                [0,0,0,1]]
     // mpar.values = ...;
     return mpar;
 }
@@ -98,6 +135,13 @@ function perRotate(mat4x4, n, u, v) {
                     [v.x, v.y, v.z, 0],
                     [n.x, n.y, n.z, 0],
                     [0, 0, 0, 1]];
+}
+
+function parTranslate(mat4x4) {
+    mat4x4.values = [[1, 0, 0, 0],
+                      [0, 1, 0, 0],
+                      [0, 0, 1, scene.view.clip[4]],
+                      [0, 0, 0, 1]]
 }
 
 // set values of existing 4x4 matrix to the translate matrix
