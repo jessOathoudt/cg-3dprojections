@@ -24,11 +24,11 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective',
-            prp: Vector3(44, 20, -16),//Vector3(44, 20, -16),
-            srp: Vector3(20, 20, -40),//Vector3(20, 20, -40),
-            vup: Vector3(0, 1, 0),//Vector3(0, 1, 0),
-            clip: [-19, 5, -10, 8, 12, 100] //[-19, 5, -10, 8, 12, 100]
+            type: 'parallel',
+            prp:  Vector3(0,10,-5),//Vector3(20, 20, -16),//Vector3(44, 20, -16),
+            srp:  Vector3(20,15,-40),// Vector3(20, 20, -40),//Vector3(20, 20, -40),
+            vup:  Vector3(1,1,0),//Vector3(0, 1, 0),//Vector3(0, 1, 0),
+            clip: [-12, 6, -12, 6, 10, 100] // [-19, 5, -10, 8, 12, 100] //[-19, 5, -10, 8, 12, 100]
         },
         models: 
             {
@@ -86,56 +86,125 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene()
 {
-    let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+    /*
     
-    let V = new Matrix(4,4);
-    V.values= ([view.width/2, 0, 0, view.width/2,
-                0, view.height/2, 0, view.height/2,
-                0, 0, 1, 0,
-                0, 0, 0, 1]);
-    //transform = good!
+    //if(scene.view.type.perspective){
+        let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
     
-    for(let i=0; i<scene.models.edges.length; i++)
-    {
-        let edge = scene.models.edges[i];
-
-        for (let j=0; j<edge.length-1; j++)
+        let V = new Matrix(4,4);
+        V.values= ([view.width/2, 0, 0, view.width/2,
+                    0, view.height/2, 0, view.height/2,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1]);
+        //transform = good!
+        
+        for(let i=0; i<scene.models.edges.length; i++)
         {
-            console.log("edge " + edge[j] + ", " + edge[j+1]);
-            let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
-            let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
-
-            //multiplying new points by nPer
-            let pt0New = Matrix.multiply([nPer, pt0]);
-            let pt1New = Matrix.multiply([nPer, pt1]);
-
-            pt0New.x = pt0New.x/pt0New.w;
-            pt0New.y = pt0New.y/pt0New.w
-            pt1New.x = pt1New.x/pt1New.w;
-            pt1New.y = pt1New.y/pt1New.w;
-
-            //clip
-            let line = {"pt0": pt0New, "pt1": pt1New};
-            let newLine = clipLinePerspective(line, scene.view.clip[4]);
-
-            //multiply by mPer and scale to frame size
-            if (newLine != null)
+            let edge = scene.models.edges[i];
+    
+            for (let j=0; j<edge.length-1; j++)
             {
-                //multiply by mPer
-                pt0New = Matrix.multiply([mat4x4MPer(), newLine.pt0]);
-                pt1New = Matrix.multiply([mat4x4MPer(), newLine.pt1]);
-
-                //scale to frame size                    
-                pt0New = Matrix.multiply([V, pt0New]);
-                pt1New = Matrix.multiply([V, pt1New]);
-                
-                //draw 2d line
-                drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
-            }
+                //console.log("edge " + edge[j] + ", " + edge[j+1]);
+                let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
+                let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
+    
+                //multiplying new points by nPer
+                let pt0New = Matrix.multiply([nPer, pt0]);
+                let pt1New = Matrix.multiply([nPer, pt1]);
+    
             
+    
+                //clip
+                let line = {"pt0": pt0New, "pt1": pt1New};
+                let newLine = clipLinePerspective(line, scene.view.clip[4]);
+    
+                //multiply by mPer and scale to frame size
+                if (newLine != null)
+                {
+                    //multiply by mPer
+                    pt0New = Matrix.multiply([mat4x4MPer(), newLine.pt0]);
+                    pt1New = Matrix.multiply([mat4x4MPer(), newLine.pt1]);
+    
+                    //scale to frame size                    
+                    pt0New = Matrix.multiply([V, pt0New]);
+                    pt1New = Matrix.multiply([V, pt1New]);
+
+                    //change x,y,w to x,y
+                    pt0New.x = pt0New.x/pt0New.w;
+                    pt0New.y = pt0New.y/pt0New.w
+                    pt1New.x = pt1New.x/pt1New.w;
+                    pt1New.y = pt1New.y/pt1New.w;
+                    
+                    //draw 2d line
+                    drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
+                }
+                
+            }
         }
     }
-}
+    */
+    
+    //if(scene.view.type.parallel){
+    
+        let nPar = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
+        //console.log(nPar);
+        let V = new Matrix(4,4);
+        V.values= ([view.width/2, 0, 0, view.width/2,
+                    0, view.height/2, 0, view.height/2,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1]);
+        //console.log(V);
+        //transform = good!
+        
+        for(let i=0; i<scene.models.edges.length; i++)
+        {
+            let edge = scene.models.edges[i];
+    
+            for (let j=0; j<edge.length-1; j++)
+            {
+                ///console.log("edge " + edge[j] + ", " + edge[j+1]);
+                let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
+                let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
+               
+
+                //multiplying new points by nPer
+                let pt0New = Matrix.multiply([nPar, pt0]);
+                let pt1New = Matrix.multiply([nPar, pt1]);
+                
+    
+                //clip
+                let line = {"pt0": pt0New, "pt1": pt1New};
+                let newLine = clipLineParallel(line);
+    
+                //multiply by mPer and scale to frame size
+                if (newLine != null)
+                {
+                    //multiply by mPer
+                    pt0New = Matrix.multiply([mat4x4MPar(), newLine.pt0]);
+                    //pt0New = Matrix.multiply([mat4x4MPar(), pt0New]);
+                    //console.log(pt0New, "new");
+                    pt1New = Matrix.multiply([mat4x4MPar(), newLine.pt1]);
+                    //pt1New = Matrix.multiply([mat4x4MPar(),pt1New]);
+    
+                    //scale to frame size                    
+                    pt0New = Matrix.multiply([V, pt0New]);
+                    pt1New = Matrix.multiply([V, pt1New]);
+
+                    pt0New.x = pt0New.x/pt0New.w;
+                    pt0New.y = pt0New.y/pt0New.w
+                    pt1New.x = pt1New.x/pt1New.w;
+                    pt1New.y = pt1New.y/pt1New.w;
+                    
+                    //draw 2d line
+                    drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
+                }
+                
+            }
+        }
+    }
+
+        
+    
 
 // Get outcode for vertex (parallel view volume)
 function outcodeParallel(vertex) {
@@ -194,9 +263,43 @@ function clipLineParallel(line)
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
+     //trivial accept
+     if((out0 | out1) == 0)
+     {
+         result = line;
+         //console.log("accept");
+     }
+     //investigate further if not trivial reject
+     else if((out0 & out1) == 0)
+     {
+         //console.log("not reject")
+         let newPoint = getIntersectionPoint(out0, line,0); //get intersection point based on out0
+ 
+         if (newPoint != null)
+         {
+             let newLine = line;
+             newLine.pt0 = newPoint;
+             newLine.pt1 = line.pt1;
+ 
+             result = clipLineParallel(newLine);
+         }//update pt0 and make recursive call if pt0 is outside of view volume
+         else
+         {
+             newPoint = getIntersectionPoint(out1, line,0);
+ 
+             let newLine = line;
+             newLine.pt0 = line.pt0;
+             newLine.pt1 = newPoint;
+ 
+             result = clipLineParallel(newLine);
+         }//update pt1 and make recursive call if pt0 is not outside of view volume
+     }
+ 
+ 
+     //console.log(result, "par")
+     return result;
+ }
     
-    return result;
-}
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min)
@@ -212,7 +315,7 @@ function clipLinePerspective(line, z_min)
     if((out0 | out1) == 0)
     {
         result = line;
-        console.log("accept");
+        //console.log("accept");
     }
     //investigate further if not trivial reject
     else if((out0 & out1) == 0)
@@ -241,9 +344,10 @@ function clipLinePerspective(line, z_min)
     }
 
 
-    console.log(result)
+    //console.log(result)
     return result;
 }
+
 
 function getIntersectionPoint(outcode, line, z_min)
 {
@@ -285,7 +389,9 @@ function getIntersectionPoint(outcode, line, z_min)
                                         (1 - t) * line.pt0.y + t * line.pt1.y,
                                         (1 - t) * line.pt0.z + t * line.pt1.z,
                                         line.pt0.w);
+        
 
+        console.log(intersectionPoint)
         return intersectionPoint;
     }
     else
@@ -327,6 +433,16 @@ function onKeyDown(event)
             console.log("A");
             clearScene();
             drawScene();
+            //idk u axis?
+
+            // tprp = new Matrix(4,4)
+            // Mat4x4Translate(tprp, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);
+            // tsrp = new Matrix(4,4)
+            // Mat4x4Translate(tsrp, scene.view.srp.tx, scene.view.srp.ty, scene.view.srp.tz);
+            // scene.view.prp = Vector3(tprp.tx, tprp.ty, tprp.tz)
+            // scene.view.prp = Vector3(tsrp.tx, tsrp.ty, tsrp.tz);
+            // drawScene();
+
             break;
         case 68: // D key
             scene.view.prp.x = scene.view.prp.x - u.x;
