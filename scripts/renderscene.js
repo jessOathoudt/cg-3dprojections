@@ -673,6 +673,7 @@ function drawSphere(center, radius, slices, stacks)
     //draw stacks
     for(let i=0; i<stacks; i++)
     {
+        //get radius based on current height
         let h = i/stacks*radius*2-radius;
         let theta = Math.acos(h/radius);
         let r = Math.tan(theta)*h;
@@ -684,6 +685,7 @@ function drawSphere(center, radius, slices, stacks)
     //draw slices
     for(let i=0; i<slices; i++)
     {
+        //get radius based on current depth
         let d = i/slices*radius*2-radius;
         let theta = Math.acos(d/radius);
         let r = Math.tan(theta)*d;
@@ -697,16 +699,17 @@ function drawSphere(center, radius, slices, stacks)
 //draw circle facing in y-axis
 function drawCircleY(center, radius, sides)
 {
-    
     let vOldLength = scene.models.vertices.length;
 
+    //add vertices
     for (let i=0; i<sides; i++)
     {
         let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
         let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
         scene.models.vertices.push(Vector4(x, center.y, z, 1));
-    }//generate vertices for top circle
+    }
 
+    //connect vertices
     let edges = [];
     for (let i=vOldLength; i<vOldLength+sides; i++)
     {
@@ -719,9 +722,9 @@ function drawCircleY(center, radius, sides)
 //draw circle facing in z-axis
 function drawCircleZ(center, radius, sides)
 {
-    
     let vOldLength = scene.models.vertices.length;
 
+    //add vertices
     for (let i=0; i<sides; i++)
     {
         let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
@@ -729,6 +732,7 @@ function drawCircleZ(center, radius, sides)
         scene.models.vertices.push(Vector4(x, y, center.z, 1));
     }//generate vertices for top circle
 
+    //connect vertices
     let edges = [];
     for (let i=vOldLength; i<vOldLength+sides; i++)
     {
@@ -738,6 +742,8 @@ function drawCircleZ(center, radius, sides)
     scene.models.edges.push(edges);
 }
 
+
+//clear view rect
 function clearScene()
 {
     ctx.clearRect(0, 0, view.width, view.height);
