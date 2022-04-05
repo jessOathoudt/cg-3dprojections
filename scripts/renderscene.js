@@ -301,6 +301,7 @@ function clipLineParallel(line)
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min)
 {
+    // return line;
     let result = null;
 
     //get outcodes
@@ -415,57 +416,73 @@ function onKeyDown(event)
     u.normalize();
     let v = n.cross(u);
     v.normalize();
-    // console.log(n, u, v)
-    // n = n.subtract(Vector3(1,1,1));
-    // u = u.subtract(Vector3(1,1,1));
-    
+
+    let newSrp;
+    let t1 = new Matrix(4,4);
+    let rx = new Matrix(4,4);
+    let ry = new Matrix(4,4);
+    let rz = new Matrix(4,4);
+    let t2 = new Matrix(4,4);
+
     switch (event.keyCode)
     {
         case 37: // LEFT Arrow
+            //rotate srp counter-clockwise about prp according to v-axis
+            newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1
+            Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
+            Mat4x4RotateX(rx, 0.03*v.x);                                                    //rotate according to v-axis
+            Mat4x4RotateY(ry, 0.03*v.y);
+            Mat4x4RotateY(rz, 0.03*v.z);
+            Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
+            newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
+            scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
+
+            clearScene();
+            drawScene();
             console.log("left");
             break;
         case 39: // RIGHT Arrow
+            //rotate srp clockwise about prp according to v-axis
+            newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1
+            Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
+            Mat4x4RotateX(rx, -0.03*v.x);                                                   //rotate according to v-axis
+            Mat4x4RotateY(ry, -0.03*v.y);
+            Mat4x4RotateY(rz, -0.03*v.z);
+            Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
+            newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
+            scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
 
-
-            console.log("right");
+            clearScene();
+            drawScene();
+            console.log("left");
             break;
         case 65: // A key
-            scene.view.prp = scene.view.prp.add(u);
-            scene.view.srp = scene.view.srp.add(u);
+            scene.view.prp = scene.view.prp.subtract(u);
+            scene.view.srp = scene.view.srp.subtract(u);
 
             console.log("A");
             clearScene();
             drawScene();
-            //idk u axis?
-
-            // tprp = new Matrix(4,4)
-            // Mat4x4Translate(tprp, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);
-            // tsrp = new Matrix(4,4)
-            // Mat4x4Translate(tsrp, scene.view.srp.tx, scene.view.srp.ty, scene.view.srp.tz);
-            // scene.view.prp = Vector3(tprp.tx, tprp.ty, tprp.tz)
-            // scene.view.prp = Vector3(tsrp.tx, tsrp.ty, tsrp.tz);
-            // drawScene();
-
             break;
         case 68: // D key
-            scene.view.prp = scene.view.prp.subtract(u);
-            scene.view.srp = scene.view.srp.subtract(u);
+            scene.view.prp = scene.view.prp.add(u);
+            scene.view.srp = scene.view.srp.add(u);
             
             console.log("D");
             clearScene();
             drawScene();
             break;
         case 83: // S key
-            scene.view.prp = scene.view.prp.subtract(n);
-            scene.view.srp = scene.view.srp.subtract(n);
+            scene.view.prp = scene.view.prp.add(n);
+            scene.view.srp = scene.view.srp.add(n);
 
             console.log("S");
             clearScene();
             drawScene();
             break;
         case 87: // W key
-            scene.view.prp = scene.view.prp.add(n);
-            scene.view.srp = scene.view.srp.add(n);
+            scene.view.prp = scene.view.prp.subtract(n);
+            scene.view.srp = scene.view.srp.subtract(n);
 
             console.log("W");
             clearScene();
