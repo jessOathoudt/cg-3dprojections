@@ -79,7 +79,6 @@ function animate(timestamp) {
     // drawCube({"x": 0, "y": 0, "z": -35}, 8, 8, 8);
     // drawCone({"x": 0, "y": 0, "z": -35}, 4, 4, 16);
     // drawCylinder({"x": 0, "y": 0, "z": -35}, 4, 4, 16)
-    // drawCircle({"x": 0, "y": 0, "z": -35}, 4, 16, "blah")
     // drawSphere({"x": 0, "y": 0, "z": -35}, 4, 16, 16)
     drawScene();
 
@@ -601,6 +600,8 @@ function drawCube(center, width, height, depth)
     let halfWidth = width / 2;
     let halfHeight = height / 2;
     let halfDepth = depth / 2;
+
+    //push all vertices
     scene.models.vertices.push(Vector4(center.x - halfWidth, center.y + halfHeight, center.z - halfDepth, 1));
     scene.models.vertices.push(Vector4(center.x - halfWidth, center.y - halfHeight, center.z - halfDepth, 1));
     scene.models.vertices.push(Vector4(center.x + halfWidth, center.y + halfHeight, center.z - halfDepth, 1));
@@ -610,6 +611,7 @@ function drawCube(center, width, height, depth)
     scene.models.vertices.push(Vector4(center.x + halfWidth, center.y + halfHeight, center.z + halfDepth, 1));
     scene.models.vertices.push(Vector4(center.x + halfWidth, center.y - halfHeight, center.z + halfDepth, 1));
 
+    //connect vertices accordingly
     scene.models.edges.push([vOldLength+0, vOldLength+2, vOldLength+3, vOldLength+1, vOldLength+0]);
     scene.models.edges.push([vOldLength+4, vOldLength+6, vOldLength+7, vOldLength+5, vOldLength+4]);
     scene.models.edges.push([vOldLength+0, vOldLength+4]);
