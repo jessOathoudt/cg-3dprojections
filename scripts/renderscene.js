@@ -428,11 +428,11 @@ function onKeyDown(event)
     {
         case 37: // LEFT Arrow
             //rotate srp counter-clockwise about prp according to v-axis
-            newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1
+            newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1 vector
             Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
-            Mat4x4RotateX(rx, 0.03*v.x);                                                    //rotate according to v-axis
-            Mat4x4RotateY(ry, 0.03*v.y);
-            Mat4x4RotateY(rz, 0.03*v.z);
+            Mat4x4RotateX(rx, 0.01*v.x);                                                    //rotate according to v-axis
+            Mat4x4RotateY(ry, 0.01*v.y);
+            Mat4x4RotateZ(rz, 0.01*v.z);
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
             newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
@@ -443,18 +443,18 @@ function onKeyDown(event)
             break;
         case 39: // RIGHT Arrow
             //rotate srp clockwise about prp according to v-axis
-            newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1
+            newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1 vector
             Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
-            Mat4x4RotateX(rx, -0.03*v.x);                                                   //rotate according to v-axis
-            Mat4x4RotateY(ry, -0.03*v.y);
-            Mat4x4RotateY(rz, -0.03*v.z);
+            Mat4x4RotateX(rx, -0.01*v.x);                                                   //rotate according to v-axis
+            Mat4x4RotateY(ry, -0.01*v.y);
+            Mat4x4RotateZ(rz, -0.01*v.z);
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
             newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
 
             clearScene();
             drawScene();
-            console.log("left");
+            console.log("right");
             break;
         case 65: // A key
             scene.view.prp = scene.view.prp.subtract(u);
