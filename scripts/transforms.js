@@ -3,7 +3,7 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     // 1. translate PRP to origin
     Tper = new Matrix(4, 4)
     Mat4x4Translate(Tper, -(prp.x), -(prp.y), -(prp.z));
-    //console.log(Tper, "t");
+
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     let n = (Vector3(prp.x-srp.x, prp.y-srp.y, prp.z-srp.z));
     n.normalize();
@@ -13,25 +13,26 @@ function mat4x4Parallel(prp, srp, vup, clip) {
     v.normalize();
     Rpar = new Matrix(4,4);
     perRotate(Rpar, n, u, v)
-    //console.log(Rpar);
+
     // 3. shear such that CW is on the z-axis
     let cw = Vector3((clip[0]+clip[1])/2, (clip[2]+clip[3])/2, -clip[4]);
     let dop = cw
     SHper = new Matrix(4,4);
     Mat4x4ShearXY(SHper, (-dop.x/dop.z), (-dop.y/dop.z))
-    //console.log(SHper);
+
     // 4. translate near clipping plane to origin
     Tpar = new Matrix(4,4);
     parTranslate(Tpar);
-    //console.log(Tpar);
+
     // 5. scale such that view volume bounds are ([-1,1], [-1,1], [-1,0])
-    let sparx = 2/(clip[0]-clip[1])
-    let spary = 2/(clip[2]-clip[3])
+    let sparx = 2/(clip[1]-clip[0])
+    let spary = 2/(clip[3]-clip[2])
     let sparz = 1/(clip[5])
     sPar = new Matrix(4,4);
     Mat4x4Scale(sPar, sparx, spary, sparz);
     // ...
     // let transform = Matrix.multiply([...]);
+    //let nPer = Matrix.multiply([Sper, SHper, Rper, Tper]);
     let nPar = Matrix.multiply([sPar, Tpar, SHper, Rpar, Tper]);
     //console.log(nPar);
     return nPar;
@@ -100,7 +101,7 @@ function mat4x4MPar() {
     mpar.values= [[1,0,0,0],
                 [0,1,0,0],
                 [0,0,0,0],
-                [0,0,0,1]]
+                [0,0,0,1]];
     // mpar.values = ...;
     return mpar;
 }
@@ -111,7 +112,7 @@ function mat4x4MPer() {
     mper.values = [[1, 0, 0, 0],
                   [0, 1, 0, 0],
                   [0, 0, 1, 0],
-                  [0, 0, -1, 0]];;
+                  [0, 0, -1, 0]];
     return mper;
 }
 
