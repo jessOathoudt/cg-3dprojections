@@ -24,11 +24,11 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel',
-            prp:  Vector3(0,10,-5),//Vector3(20, 20, -16),//Vector3(44, 20, -16),
-            srp:  Vector3(20,15,-40),// Vector3(20, 20, -40),//Vector3(20, 20, -40),
-            vup:  Vector3(1,1,0),//Vector3(0, 1, 0),//Vector3(0, 1, 0),
-            clip: [-12, 6, -12, 6, 10, 100] // [-19, 5, -10, 8, 12, 100] //[-19, 5, -10, 8, 12, 100]
+            type: 'perspective',
+            prp:  Vector3(40,0,-16),//Vector3(44, 20, -16),
+            srp:  Vector3(20,0,-40),//Vector3(20, 20, -40),
+            vup:  Vector3(0,1,0),//Vector3(0, 1, 0),
+            clip: [-19, 5, -10, 8, 12, 100]//[-19, 5, -10, 8, 12, 100]
         },
         models: 
             {
@@ -86,9 +86,8 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene()
 {
-    /*
-    
-    //if(scene.view.type.perspective){
+    if(scene.view.type == 'perspective')
+    {
         let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
     
         let V = new Matrix(4,4);
@@ -104,7 +103,6 @@ function drawScene()
     
             for (let j=0; j<edge.length-1; j++)
             {
-                //console.log("edge " + edge[j] + ", " + edge[j+1]);
                 let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
                 let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
     
@@ -142,9 +140,8 @@ function drawScene()
             }
         }
     }
-    */
-    
-    //if(scene.view.type.parallel){
+    else
+    {
     
         let nPar = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
         //console.log(nPar);
@@ -165,13 +162,12 @@ function drawScene()
                 ///console.log("edge " + edge[j] + ", " + edge[j+1]);
                 let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
                 let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
-               
+                
 
                 //multiplying new points by nPer
                 let pt0New = Matrix.multiply([nPar, pt0]);
                 let pt1New = Matrix.multiply([nPar, pt1]);
                 
-    
                 //clip
                 let line = {"pt0": pt0New, "pt1": pt1New};
                 let newLine = clipLineParallel(line);
@@ -189,9 +185,10 @@ function drawScene()
                     //scale to frame size                    
                     pt0New = Matrix.multiply([V, pt0New]);
                     pt1New = Matrix.multiply([V, pt1New]);
+                    
 
                     pt0New.x = pt0New.x/pt0New.w;
-                    pt0New.y = pt0New.y/pt0New.w
+                    pt0New.y = pt0New.y/pt0New.w;
                     pt1New.x = pt1New.x/pt1New.w;
                     pt1New.y = pt1New.y/pt1New.w;
                     
@@ -202,7 +199,7 @@ function drawScene()
             }
         }
     }
-
+}
         
     
 
@@ -412,13 +409,15 @@ function getIntersectionPointParallel(outcode, line)
 // Called when user presses a key on the keyboard down 
 function onKeyDown(event)
 {
-    let n = scene.view.prp.cross(scene.view.srp);
+    let n = scene.view.prp.subtract(scene.view.srp);
     n.normalize();
     let u = scene.view.vup.cross(n);
     u.normalize();
     let v = n.cross(u);
     v.normalize();
-    console.log(n, u, v)
+    // console.log(n, u, v)
+    // n = n.subtract(Vector3(1,1,1));
+    // u = u.subtract(Vector3(1,1,1));
     
     switch (event.keyCode)
     {
@@ -431,12 +430,8 @@ function onKeyDown(event)
             console.log("right");
             break;
         case 65: // A key
-            scene.view.prp.x = scene.view.prp.x + u.x;
-            scene.view.srp.x = scene.view.srp.x + u.x;
-            scene.view.prp.y = scene.view.prp.y + u.y;
-            scene.view.srp.y = scene.view.srp.y + u.y;
-            scene.view.prp.z = scene.view.prp.z + u.z;
-            scene.view.srp.z = scene.view.srp.z + u.z;
+            scene.view.prp = scene.view.prp.add(u);
+            scene.view.srp = scene.view.srp.add(u);
 
             console.log("A");
             clearScene();
@@ -453,36 +448,24 @@ function onKeyDown(event)
 
             break;
         case 68: // D key
-            scene.view.prp.x = scene.view.prp.x - u.x;
-            scene.view.srp.x = scene.view.srp.x - u.x;
-            scene.view.prp.y = scene.view.prp.y - u.y;
-            scene.view.srp.y = scene.view.srp.y - u.y;
-            scene.view.prp.z = scene.view.prp.z - u.z;
-            scene.view.srp.z = scene.view.srp.z - u.z;
+            scene.view.prp = scene.view.prp.subtract(u);
+            scene.view.srp = scene.view.srp.subtract(u);
             
             console.log("D");
             clearScene();
             drawScene();
             break;
         case 83: // S key
-            scene.view.prp.x = scene.view.prp.x - n.x;
-            scene.view.srp.x = scene.view.srp.x - n.x;
-            scene.view.prp.y = scene.view.prp.y - n.y;
-            scene.view.srp.y = scene.view.srp.y - n.y;
-            scene.view.prp.z = scene.view.prp.z - n.z;
-            scene.view.srp.z = scene.view.srp.z - n.z;
+            scene.view.prp = scene.view.prp.subtract(n);
+            scene.view.srp = scene.view.srp.subtract(n);
 
             console.log("S");
             clearScene();
             drawScene();
             break;
         case 87: // W key
-            scene.view.prp.x = scene.view.prp.x + n.x;
-            scene.view.srp.x = scene.view.srp.x + n.x;
-            scene.view.prp.y = scene.view.prp.y + n.y;
-            scene.view.srp.y = scene.view.srp.y + n.y;
-            scene.view.prp.z = scene.view.prp.z + n.z;
-            scene.view.srp.z = scene.view.srp.z + n.z;
+            scene.view.prp = scene.view.prp.add(n);
+            scene.view.srp = scene.view.srp.add(n);
 
             console.log("W");
             clearScene();
