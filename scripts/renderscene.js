@@ -25,8 +25,8 @@ function init() {
     scene = {
         view: {
             type: 'perspective',
-            prp:  Vector3(40,0,-16),//Vector3(44, 20, -16),
-            srp:  Vector3(20,0,-40),//Vector3(20, 20, -40),
+            prp:  Vector3(44, 15, -16),//Vector3(44, 20, -16),
+            srp:  Vector3(20, 15, -40),//Vector3(20, 20, -40),
             vup:  Vector3(0,1,0),//Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]//[-19, 5, -10, 8, 12, 100]
         },
@@ -76,6 +76,11 @@ function animate(timestamp) {
     // TODO: implement this!
 
     // step 3: draw scene
+    // drawCube({"x": 0, "y": 0, "z": -35}, 8, 8, 8);
+    // drawCone({"x": 0, "y": 0, "z": -35}, 4, 4, 16);
+    // drawCylinder({"x": 0, "y": 0, "z": -35}, 4, 4, 16)
+    // drawCircle({"x": 0, "y": 0, "z": -35}, 4, 16, "blah")
+    drawSphere({"x": 0, "y": 0, "z": -35}, 4, 16, 16)
     drawScene();
 
     // step 4: request next animation frame (recursively calling same function)
@@ -142,7 +147,6 @@ function drawScene()
     }
     else
     {
-    
         let nPar = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
         //console.log(nPar);
         let V = new Matrix(4,4);
@@ -404,6 +408,54 @@ function getIntersectionPointPerspective(outcode, line, z_min)
 //get parallel intersection point based on  outcode and line
 function getIntersectionPointParallel(outcode, line)
 {
+    t = null;
+    dx = line.pt1.x - line.pt0.x;
+    dy = line.pt1.y - line.pt0.y;
+    dz = line.pt1.z - line.pt0.z;
+
+    //calculate t based on outcode
+    if ((outcode & LEFT) != 0)
+    {
+        t = (-1 - line.pt0.x) / (dx);
+    }
+    else if ((outcode & RIGHT) != 0)
+    {
+        t = (1 - line.pt0.x) / (dx);
+    }
+    else if ((outcode & BOTTOM) != 0)
+    {
+        t = (-1 - line.pt0.y) / (dy);
+    }
+    else if((outcode & TOP) != 0)
+    {
+        t = (1 - line.pt0.y) / (dy);
+    }
+    else if ((outcode & FAR) != 0)
+    {
+        t = -1 * (line.pt0.z + 1) / dz;
+    }
+    else if ((outcode & NEAR) != 0)
+    {
+        t = (0 - line.pt0.z) / (dz);
+    }
+
+    if (t != null)
+    {
+        //calculate new intersectionPoint based on t
+        let intersectionPoint = Vector4((1 - t) * line.pt0.x + t * line.pt1.x,
+                                        (1 - t) * line.pt0.y + t * line.pt1.y,
+                                        (1 - t) * line.pt0.z + t * line.pt1.z,
+                                        line.pt0.w);
+        
+
+        console.log(intersectionPoint)
+        return intersectionPoint;
+    }
+    else
+    {
+        //return null if no intersection point is found
+        return null;
+    }
 
 }
 
@@ -530,7 +582,8 @@ function loadNewScene() {
 }
 
 // Draw black 2D line with red endpoints 
-function drawLine(x1, y1, x2, y2) {
+function drawLine(x1, y1, x2, y2)
+{
     ctx.strokeStyle = '#000000';
     ctx.beginPath();
     ctx.moveTo(x1, y1);
@@ -540,6 +593,116 @@ function drawLine(x1, y1, x2, y2) {
     ctx.fillStyle = '#FF0000';
     ctx.fillRect(x1 - 2, y1 - 2, 4, 4);
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
+}
+
+function drawCube(center, width, height, depth)
+{
+    let vOldLength = scene.models.vertices.length;
+    let halfWidth = width / 2;
+    let halfHeight = height / 2;
+    let halfDepth = depth / 2;
+    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y + halfHeight, center.z - halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y - halfHeight, center.z - halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y + halfHeight, center.z - halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y - halfHeight, center.z - halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y + halfHeight, center.z + halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y - halfHeight, center.z + halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y + halfHeight, center.z + halfDepth, 1));
+    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y - halfHeight, center.z + halfDepth, 1));
+
+    scene.models.edges.push([vOldLength+0, vOldLength+2, vOldLength+3, vOldLength+1, vOldLength+0]);
+    scene.models.edges.push([vOldLength+4, vOldLength+6, vOldLength+7, vOldLength+5, vOldLength+4]);
+    scene.models.edges.push([vOldLength+0, vOldLength+4]);
+    scene.models.edges.push([vOldLength+1, vOldLength+5]);
+    scene.models.edges.push([vOldLength+2, vOldLength+6]);
+    scene.models.edges.push([vOldLength+3, vOldLength+7]);
+}
+
+function drawCone(center, radius, height, sides)
+{
+    let vOldLength = scene.models.vertices.length;
+
+    scene.models.vertices.push(Vector4(center.x, center.y+height, center.z, 1));   //tip of the cone
+    for (let i=0; i<sides; i++)
+    {
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
+        scene.models.vertices.push(Vector4(x, center.y, z, 1));
+    }//generate vertices for bottom circle
+
+    //connect vertices
+    for (let i=0; i<sides-1; i++)
+    {
+        scene.models.edges.push([i+vOldLength+1, i+vOldLength+2, vOldLength]);
+    }
+    scene.models.edges.push([sides+vOldLength, vOldLength+1, vOldLength]);
+}
+
+function drawCylinder(center, radius, height, sides)
+{
+    let vOldLength = scene.models.vertices.length;
+
+    for (let i=0; i<sides; i++)
+    {
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
+        scene.models.vertices.push(Vector4(x, center.y+height/2, z, 1));
+    }//generate vertices for top circle
+
+    for (let i=0; i<sides; i++)
+    {
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
+        scene.models.vertices.push(Vector4(x, center.y-height/2, z, 1));
+    }//generate vertices for bottom circle
+
+    //connect vertices
+    for(let i = vOldLength; i<vOldLength+sides-1; i++)
+    {
+        scene.models.edges.push([i, i+1, i+sides+1, i+sides]);
+    }
+    scene.models.edges.push([vOldLength, vOldLength+sides-1]);
+    scene.models.edges.push([vOldLength+sides, vOldLength+sides*2-1]);
+    scene.models.edges.push([vOldLength, vOldLength+sides]);
+}
+
+function drawSphere(center, radius, slices, stacks)
+{
+    let vOldLength = scene.models.vertices.length;
+
+    for(let i=0; i<stacks; i++)
+    {
+        let h = i/stacks*radius*2-radius;
+        let theta = Math.acos(h/radius);
+        let r = Math.tan(theta)*h;
+        // console.log(y);
+
+        let stacksCenter = {"x": center.x, "y": h+center.y, "z": center.z};
+        drawCircle(stacksCenter, r, 15);
+    }
+
+
+}
+
+function drawCircle(center, radius, sides, up)
+{
+    
+    let vOldLength = scene.models.vertices.length;
+
+    for (let i=0; i<sides; i++)
+    {
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
+        scene.models.vertices.push(Vector4(x, center.y, z, 1));
+    }//generate vertices for top circle
+
+    let edges = [];
+    for (let i=vOldLength; i<vOldLength+sides; i++)
+    {
+        edges.push(i);
+    }
+    edges.push(vOldLength);
+    scene.models.edges.push(edges);
 }
 
 
