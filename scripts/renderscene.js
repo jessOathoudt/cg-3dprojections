@@ -80,7 +80,7 @@ function animate(timestamp) {
     // drawCone({"x": 0, "y": 0, "z": -35}, 4, 4, 16);
     // drawCylinder({"x": 0, "y": 0, "z": -35}, 4, 4, 16)
     // drawCircle({"x": 0, "y": 0, "z": -35}, 4, 16, "blah")
-    drawSphere({"x": 0, "y": 0, "z": -35}, 4, 16, 16)
+    // drawSphere({"x": 0, "y": 0, "z": -35}, 4, 16, 16)
     drawScene();
 
     // step 4: request next animation frame (recursively calling same function)
@@ -668,23 +668,32 @@ function drawCylinder(center, radius, height, sides)
 
 function drawSphere(center, radius, slices, stacks)
 {
-    let vOldLength = scene.models.vertices.length;
-
+    //draw stacks
     for(let i=0; i<stacks; i++)
     {
         let h = i/stacks*radius*2-radius;
         let theta = Math.acos(h/radius);
         let r = Math.tan(theta)*h;
-        // console.log(y);
 
-        let stacksCenter = {"x": center.x, "y": h+center.y, "z": center.z};
-        drawCircle(stacksCenter, r, 15);
+        let stackCenter = {"x": center.x, "y": h+center.y, "z": center.z};
+        drawCircleY(stackCenter, r, 15);
     }
 
+    //draw slices
+    for(let i=0; i<slices; i++)
+    {
+        let d = i/slices*radius*2-radius;
+        let theta = Math.acos(d/radius);
+        let r = Math.tan(theta)*d;
 
+        let sliceCenter = {"x": center.x, "y": center.y, "z": d+center.z};
+        drawCircleZ(sliceCenter, r, 15);
+    }
 }
 
-function drawCircle(center, radius, sides, up)
+
+//draw circle facing in y-axis
+function drawCircleY(center, radius, sides)
 {
     
     let vOldLength = scene.models.vertices.length;
@@ -705,6 +714,27 @@ function drawCircle(center, radius, sides, up)
     scene.models.edges.push(edges);
 }
 
+//draw circle facing in z-axis
+function drawCircleZ(center, radius, sides)
+{
+    
+    let vOldLength = scene.models.vertices.length;
+
+    for (let i=0; i<sides; i++)
+    {
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
+        let y = Math.sin(2 * i * Math.PI / sides) * radius + center.y;
+        scene.models.vertices.push(Vector4(x, y, center.z, 1));
+    }//generate vertices for top circle
+
+    let edges = [];
+    for (let i=vOldLength; i<vOldLength+sides; i++)
+    {
+        edges.push(i);
+    }
+    edges.push(vOldLength);
+    scene.models.edges.push(edges);
+}
 
 function clearScene()
 {
