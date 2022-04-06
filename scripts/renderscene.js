@@ -365,7 +365,7 @@ function getIntersectionPointPerspective(outcode, line, z_min)
     }
     else if ((outcode & RIGHT) != 0)
     {
-        t = (line.pt0.x + line.pt0.z) / (-dx - dx);
+        t = (line.pt0.x + line.pt0.z) / (-dx - dz);
     }
     else if ((outcode & BOTTOM) != 0)
     {
