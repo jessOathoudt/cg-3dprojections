@@ -354,9 +354,9 @@ function clipLinePerspective(line, z_min)
 function getIntersectionPointPerspective(outcode, line, z_min)
 {
     t = null;
-    dx = line.pt1.x - line.pt0.x;
-    dy = line.pt1.y - line.pt0.y;
-    dz = line.pt1.z - line.pt0.z;
+    let dx = line.pt1.x - line.pt0.x;
+    let dy = line.pt1.y - line.pt0.y;
+    let dz = line.pt1.z - line.pt0.z;
 
     //calculate t based on outcode
     if ((outcode & LEFT) != 0)
@@ -365,7 +365,7 @@ function getIntersectionPointPerspective(outcode, line, z_min)
     }
     else if ((outcode & RIGHT) != 0)
     {
-        t = (line.pt0.x + line.pt0.z) / (dx + dx) * -1;
+        t = (line.pt0.x + line.pt0.z) / (-dx - dx);
     }
     else if ((outcode & BOTTOM) != 0)
     {
@@ -373,15 +373,15 @@ function getIntersectionPointPerspective(outcode, line, z_min)
     }
     else if((outcode & TOP) != 0)
     {
-        t = (line.pt0.y + line.pt0.z) / (dy + dz) * -1;
+        t = (line.pt0.y + line.pt0.z) / (-dy - dz);
     }
     else if ((outcode & FAR) != 0)
     {
-        t = -1 * (line.pt0.z + 1) / dz;
+        t = (-line.pt0.z - 1) / dz;
     }
     else if ((outcode & NEAR) != 0)
     {
-        t = (z_min - line.pt0.z) / (-1 * dz);
+        t = (line.pt0.z - z_min) / (-dz);
     }
 
     if (t != null)
@@ -435,7 +435,7 @@ function getIntersectionPointParallel(outcode, line)
     }
     else if ((outcode & NEAR) != 0)
     {
-        t = (0 - line.pt0.z) / (dz);
+        t = (line.pt0.z) / (dz);
     }
 
     if (t != null)
