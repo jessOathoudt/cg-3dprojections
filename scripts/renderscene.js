@@ -63,28 +63,40 @@ function init() {
                 "center": [0, 0, -60],
                 "width": 8,
                 "height": 8,
-                "depth": 8
+                "depth": 8,
+                "animation": {
+                    "axis": "z",
+                    "rps": .0001}
             },
             {
                 "type": "cone",
                 "center": [0, 0, -40],
                 "radius": 8,
                 "height": 8,
-                "sides": 16
+                "sides": 16,
+                "animation": {
+                    "axis": "z",
+                    "rps": .0001}
             },
             {
                 "type": "cylinder",
                 "center": [0, 0, -25],
                 "radius": 3,
                 "height": 10,
-                "sides": 16
+                "sides": 16,
+                "animation": {
+                    "axis": "z",
+                    "rps": .0001}
             },
             {
                 "type": "sphere",
                 "center": [0, 0, -15],
                 "radius": 4,
                 "slices": 16,
-                "stacks": 16
+                "stacks": 16,
+                "animation": {
+                    "axis": "z",
+                    "rps": .0001}
             }
         ]
     };
@@ -110,19 +122,21 @@ function animate(timestamp) {
 
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    // window.requestAnimationFrame(animate);
+     window.requestAnimationFrame(animate);
 }
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene(time)
 {
+    clearScene();
     for (let model of scene.models)
     {
         let theta = 0;
         let axis = null;
         if (model.animation !== undefined)
         {
-            theta = model.animation.rps*time*Math.PI % Math.PI;
+            theta = model.animation.rps*time*Math.PI*2 % (Math.PI*2);
+            //console.log(theta);
             axis = model.animation.axis;
         }
         //call different draw methods based on model type
@@ -133,6 +147,7 @@ function drawScene(time)
         else if (model.type === 'sphere')   {drawSphere(model.center, model.radius, model.slices, model.stacks, theta, axis);}
     }
 }
+
 
 function drawSceneHelper(vertices, edges)
 {
@@ -520,7 +535,7 @@ function onKeyDown(event)
     let t2 = new Matrix(4,4);
 
     if(scene.view.type == 'perspective'){
-
+        //left and right arrow, ask why it's broken
         switch (event.keyCode)
         {
             case 37: // LEFT Arrow
@@ -533,6 +548,7 @@ function onKeyDown(event)
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
             newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
             console.log(newSrp.x, newSrp.y, newSrp.z, "srp")
+            console.log(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, "prp")
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
 
             clearScene();
@@ -680,6 +696,7 @@ function onKeyDown(event)
     }
 
 }
+//ask why sample_scene won't run
 
 ///////////////////////////////////////////////////////////////////////////
 // No need to edit functions beyond this point
@@ -762,7 +779,32 @@ function drawCube(center, width, height, depth, currenTheta, axis)
     edges.push([2, 6]);
     edges.push([3, 7]);
 
+
+    rotation(center, currenTheta, axis, vertices);
+
     drawSceneHelper(vertices, edges);
+}
+
+function rotation(center, currenTheta, axis, vertices){
+    //rotating
+    let rot = new Matrix(4,4);
+    let newRot = new Matrix(4,4);
+    let rotatingMat = new Matrix(4,4);
+    let rotatingDone = new Matrix(4,4);
+
+    Mat4x4Translate(rot, -(center[0]), -(center[1]), -(center[2]));
+    if(axis =='x'){
+        Mat4x4RotateX(rotatingMat, currenTheta); 
+    } else if(axis == 'y'){
+        Mat4x4RotateY(rotatingMat, currenTheta);
+    } else {
+        Mat4x4RotateZ(rotatingMat, currenTheta);
+    }
+    Mat4x4Translate(newRot, center[0], center[1], center[2]);
+    rotatingDone = Matrix.multiply([newRot, rotatingMat,rot]);
+    for(let i =0; i<vertices.length; i++){
+       vertices[i]= Matrix.multiply([rotatingDone, vertices[i]]);
+    }
 }
 
 function drawCone(center, radius, height, sides, currenTheta, axis)
@@ -788,6 +830,7 @@ function drawCone(center, radius, height, sides, currenTheta, axis)
     edges.push([sides, 1, 0]);
 
     //call draw scene
+    rotation(center, currenTheta, axis, vertices);
     drawSceneHelper(vertices, edges);
 }
 
@@ -820,6 +863,7 @@ function drawCylinder(center, radius, height, sides, currenTheta, axis)
     edges.push([0, sides]);
 
     //call draw scene
+    rotation(center, currenTheta, axis, vertices);
     drawSceneHelper(vertices, edges);
 }
 
@@ -849,7 +893,7 @@ function drawSphere(center, radius, slices, stacks, currenTheta, axis)
 
         drawCircleZ([center[0], center[1], center[2]+d], r, 15, vertices, edges);
     }
-
+    rotation(center, currenTheta, axis, vertices);
     drawSceneHelper(vertices, edges);
 }
 
