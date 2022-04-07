@@ -66,7 +66,7 @@ function init() {
                 "depth": 8,
                 "animation": {
                     "axis": "z",
-                    "rps": .0001}
+                    "rps": .25}
             },
             {
                 "type": "cone",
@@ -76,7 +76,7 @@ function init() {
                 "sides": 16,
                 "animation": {
                     "axis": "z",
-                    "rps": .0001}
+                    "rps": .25}
             },
             {
                 "type": "cylinder",
@@ -86,7 +86,7 @@ function init() {
                 "sides": 16,
                 "animation": {
                     "axis": "z",
-                    "rps": .0001}
+                    "rps": .25}
             },
             {
                 "type": "sphere",
@@ -96,7 +96,7 @@ function init() {
                 "stacks": 16,
                 "animation": {
                     "axis": "z",
-                    "rps": .0001}
+                    "rps": .25}
             }
         ]
     };
@@ -135,7 +135,7 @@ function drawScene(time)
         let axis = null;
         if (model.animation !== undefined)
         {
-            theta = model.animation.rps*time*Math.PI*2 % (Math.PI*2);
+            theta = model.animation.rps*time/1000*Math.PI*2 % (Math.PI*2);
             //console.log(theta);
             axis = model.animation.axis;
         }
