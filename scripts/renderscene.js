@@ -46,6 +46,9 @@ function init() {
                     Vector4(10, 20, -60, 1),
                     Vector4( 0, 12, -60, 1)
                 ],
+                "animation": {
+                    "axis": "z",
+                    "rps": .25},
                 edges: [
                     [0, 1, 2, 3, 4, 0],
                     [5, 6, 7, 8, 9, 5],
@@ -55,6 +58,7 @@ function init() {
                     [3, 8],
                     [4, 9]
                 ],
+
                 //store rotation for animation
                 matrix: new Matrix(4, 4)
             },
@@ -111,17 +115,13 @@ function init() {
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp) {
-    // step 1: calculate time (time since start)
+    //calculate time
     let time = timestamp - start_time;
-    
-    // step 2: transform models based on time
-    // TODO: implement this!
 
-    // step 3: draw scene
+    //drawScene
     drawScene(time);
 
-    // step 4: request next animation frame (recursively calling same function)
-    // (may want to leave commented out while debugging initially)
+    //request next animation frame
      window.requestAnimationFrame(animate);
 }
 
@@ -136,16 +136,35 @@ function drawScene(time)
         if (model.animation !== undefined)
         {
             theta = model.animation.rps*time/1000*Math.PI*2 % (Math.PI*2);
-            //console.log(theta);
+            // console.log(theta);
             axis = model.animation.axis;
         }
         //call different draw methods based on model type
-        if      (model.type === 'generic')  {drawSceneHelper(model.vertices, model.edges);}
+        if      (model.type === 'generic')  {drawGeneric(model.vertices, model.edges, theta, axis);}
         else if (model.type === 'cube')     {drawCube(model.center, model.width, model.height, model.depth, theta, axis);}
         else if (model.type === 'cone')     {drawCone(model.center, model.radius, model.height, model.sides, theta, axis);}
         else if (model.type === 'cylinder') {drawCylinder(model.center, model.radius, model.height, model.sides, theta, axis);}
         else if (model.type === 'sphere')   {drawSphere(model.center, model.radius, model.slices, model.stacks, theta, axis);}
     }
+}
+
+function drawGeneric(vertices, edges, currentTheta, axis)
+{
+    let verticesCopy = [];
+    let center = [0,0,0];
+    for (vertex of vertices)
+    {
+        verticesCopy.push(vertex);
+        center[0] = vertex.x + center[0];
+        center[1] = vertex.y + center[1];
+        center[2] = vertex.z + center[2];
+    }
+    center[0] = center[0] / vertices.length;
+    center[1] = center[1] / vertices.length;
+    center[2] = center[2] / vertices.length;
+
+    rotation(center, currentTheta, axis, verticesCopy);
+    drawSceneHelper(verticesCopy, edges);
 }
 
 
@@ -750,6 +769,28 @@ function drawLine(x1, y1, x2, y2)
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
 }
 
+function rotation(center, currenTheta, axis, vertices){
+    //rotating
+    let rot = new Matrix(4,4);
+    let newRot = new Matrix(4,4);
+    let rotatingMat = new Matrix(4,4);
+    let rotatingDone = new Matrix(4,4);
+
+    Mat4x4Translate(rot, -(center[0]), -(center[1]), -(center[2]));
+    if(axis =='x'){
+        Mat4x4RotateX(rotatingMat, currenTheta); 
+    } else if(axis == 'y'){
+        Mat4x4RotateY(rotatingMat, currenTheta);
+    } else {
+        Mat4x4RotateZ(rotatingMat, currenTheta);
+    }
+    Mat4x4Translate(newRot, center[0], center[1], center[2]);
+    rotatingDone = Matrix.multiply([newRot, rotatingMat,rot]);
+    for(let i =0; i<vertices.length; i++){
+       vertices[i]= Matrix.multiply([rotatingDone, vertices[i]]);
+    }
+}
+
 function drawCube(center, width, height, depth, currenTheta, axis)
 {
     let vertices = [];
@@ -783,28 +824,6 @@ function drawCube(center, width, height, depth, currenTheta, axis)
     rotation(center, currenTheta, axis, vertices);
 
     drawSceneHelper(vertices, edges);
-}
-
-function rotation(center, currenTheta, axis, vertices){
-    //rotating
-    let rot = new Matrix(4,4);
-    let newRot = new Matrix(4,4);
-    let rotatingMat = new Matrix(4,4);
-    let rotatingDone = new Matrix(4,4);
-
-    Mat4x4Translate(rot, -(center[0]), -(center[1]), -(center[2]));
-    if(axis =='x'){
-        Mat4x4RotateX(rotatingMat, currenTheta); 
-    } else if(axis == 'y'){
-        Mat4x4RotateY(rotatingMat, currenTheta);
-    } else {
-        Mat4x4RotateZ(rotatingMat, currenTheta);
-    }
-    Mat4x4Translate(newRot, center[0], center[1], center[2]);
-    rotatingDone = Matrix.multiply([newRot, rotatingMat,rot]);
-    for(let i =0; i<vertices.length; i++){
-       vertices[i]= Matrix.multiply([rotatingDone, vertices[i]]);
-    }
 }
 
 function drawCone(center, radius, height, sides, currenTheta, axis)
