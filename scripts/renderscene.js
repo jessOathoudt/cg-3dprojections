@@ -30,7 +30,8 @@ function init() {
             vup:  Vector3(0,1,0),//Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]//[-19, 5, -10, 8, 12, 100]
         },
-        models: 
+        models:
+        [
             {
                 type: 'generic',
                 vertices: [
@@ -56,7 +57,36 @@ function init() {
                 ],
                 //store rotation for animation
                 matrix: new Matrix(4, 4)
+            },
+            {
+                "type": "cube",
+                "center": [0, 0, -60],
+                "width": 8,
+                "height": 8,
+                "depth": 8
+            },
+            {
+                "type": "cone",
+                "center": [0, 0, -40],
+                "radius": 8,
+                "height": 8,
+                "sides": 16
+            },
+            {
+                "type": "cylinder",
+                "center": [0, 0, -25],
+                "radius": 3,
+                "height": 10,
+                "sides": 16
+            },
+            {
+                "type": "sphere",
+                "center": [0, 0, -15],
+                "radius": 4,
+                "slices": 16,
+                "stacks": 16
             }
+        ]
     };
 
     // event handler for pressing arrow keys
@@ -76,11 +106,7 @@ function animate(timestamp) {
     // TODO: implement this!
 
     // step 3: draw scene
-    // drawCube({"x": 0, "y": 0, "z": -35}, 8, 8, 8);
-    // drawCone({"x": 0, "y": 0, "z": -35}, 4, 4, 16);
-    // drawCylinder({"x": 0, "y": 0, "z": -35}, 4, 4, 16)
-    // drawSphere({"x": 0, "y": 0, "z": -35}, 4, 16, 16)
-    drawScene();
+    drawScene(time);
 
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
@@ -88,8 +114,29 @@ function animate(timestamp) {
 }
 
 // Main drawing code - use information contained in variable `scene`
-function drawScene()
+function drawScene(time)
 {
+    for (let model of scene.models)
+    {
+        let theta = 0;
+        let axis = null;
+        if (model.animation !== undefined)
+        {
+            theta = model.animation.rps*time*Math.PI % Math.PI;
+            axis = model.animation.axis;
+        }
+        //call different draw methods based on model type
+        if      (model.type === 'generic')  {drawSceneHelper(model.vertices, model.edges);}
+        else if (model.type === 'cube')     {drawCube(model.center, model.width, model.height, model.depth, theta, axis);}
+        else if (model.type === 'cone')     {drawCone(model.center, model.radius, model.height, model.sides, theta, axis);}
+        else if (model.type === 'cylinder') {drawCylinder(model.center, model.radius, model.height, model.sides, theta, axis);}
+        else if (model.type === 'sphere')   {drawSphere(model.center, model.radius, model.slices, model.stacks, theta, axis);}
+    }
+}
+
+function drawSceneHelper(vertices, edges)
+{
+    //perspective view
     if(scene.view.type == 'perspective')
     {
         let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
@@ -99,22 +146,19 @@ function drawScene()
                     0, view.height/2, 0, view.height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1]);
-        //transform = good!
         
-        for(let i=0; i<scene.models.edges.length; i++)
+        for(let i=0; i<edges.length; i++)
         {
-            let edge = scene.models.edges[i];
+            let edge = edges[i];
     
             for (let j=0; j<edge.length-1; j++)
             {
-                let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
-                let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
+                let pt0 = new Vector4(vertices[edge[j]].x, vertices[edge[j]].y, vertices[edge[j]].z, vertices[edge[j]].w);
+                let pt1 = new Vector4(vertices[edge[j+1]].x, vertices[edge[j+1]].y, vertices[edge[j+1]].z, vertices[edge[j+1]].w);
     
                 //multiplying new points by nPer
                 let pt0New = Matrix.multiply([nPer, pt0]);
-                let pt1New = Matrix.multiply([nPer, pt1]);
-    
-            
+                let pt1New = Matrix.multiply([nPer, pt1]);            
     
                 //clip
                 let line = {"pt0": pt0New, "pt1": pt1New};
@@ -144,6 +188,7 @@ function drawScene()
             }
         }
     }
+    //parallel view
     else
     {
         let nPar = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
@@ -156,15 +201,15 @@ function drawScene()
         //console.log(V);
         //transform = good!
         
-        for(let i=0; i<scene.models.edges.length; i++)
+        for(let i=0; i<edges.length; i++)
         {
-            let edge = scene.models.edges[i];
+            let edge = edges[i];
     
             for (let j=0; j<edge.length-1; j++)
             {
                 ///console.log("edge " + edge[j] + ", " + edge[j+1]);
-                let pt0 = new Vector4(scene.models.vertices[edge[j]].x, scene.models.vertices[edge[j]].y, scene.models.vertices[edge[j]].z, scene.models.vertices[edge[j]].w);
-                let pt1 = new Vector4(scene.models.vertices[edge[j+1]].x, scene.models.vertices[edge[j+1]].y, scene.models.vertices[edge[j+1]].z, scene.models.vertices[edge[j+1]].w);
+                let pt0 = new Vector4(vertices[edge[j]].x, vertices[edge[j]].y, vertices[edge[j]].z, vertices[edge[j]].w);
+                let pt1 = new Vector4(vertices[edge[j+1]].x, vertices[edge[j+1]].y, vertices[edge[j+1]].z, vertices[edge[j+1]].w);
                 
 
                 //multiplying new points by nPer
@@ -197,8 +242,7 @@ function drawScene()
                     
                     //draw 2d line
                     drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
-                }
-                
+                }   
             }
         }
     }
@@ -393,7 +437,7 @@ function getIntersectionPointPerspective(outcode, line, z_min)
                                         line.pt0.w);
         
 
-        console.log(intersectionPoint)
+        // console.log(intersectionPoint)
         return intersectionPoint;
     }
     else
@@ -594,82 +638,101 @@ function drawLine(x1, y1, x2, y2)
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
 }
 
-function drawCube(center, width, height, depth)
+function drawCube(center, width, height, depth, currenTheta, axis)
 {
-    let vOldLength = scene.models.vertices.length;
+    let vertices = [];
+    let edges = [];
+    let x = center[0];
+    let y = center[1];
+    let z = center[2];
     let halfWidth = width / 2;
     let halfHeight = height / 2;
     let halfDepth = depth / 2;
 
     //push all vertices
-    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y + halfHeight, center.z - halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y - halfHeight, center.z - halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y + halfHeight, center.z - halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y - halfHeight, center.z - halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y + halfHeight, center.z + halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x - halfWidth, center.y - halfHeight, center.z + halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y + halfHeight, center.z + halfDepth, 1));
-    scene.models.vertices.push(Vector4(center.x + halfWidth, center.y - halfHeight, center.z + halfDepth, 1));
+    vertices.push(Vector4(x - halfWidth, y + halfHeight, z - halfDepth, 1));
+    vertices.push(Vector4(x - halfWidth, y - halfHeight, z - halfDepth, 1));
+    vertices.push(Vector4(x + halfWidth, y + halfHeight, z - halfDepth, 1));
+    vertices.push(Vector4(x + halfWidth, y - halfHeight, z - halfDepth, 1));
+    vertices.push(Vector4(x - halfWidth, y + halfHeight, z + halfDepth, 1));
+    vertices.push(Vector4(x - halfWidth, y - halfHeight, z + halfDepth, 1));
+    vertices.push(Vector4(x + halfWidth, y + halfHeight, z + halfDepth, 1));
+    vertices.push(Vector4(x + halfWidth, y - halfHeight, z + halfDepth, 1));
 
     //connect vertices accordingly
-    scene.models.edges.push([vOldLength+0, vOldLength+2, vOldLength+3, vOldLength+1, vOldLength+0]);
-    scene.models.edges.push([vOldLength+4, vOldLength+6, vOldLength+7, vOldLength+5, vOldLength+4]);
-    scene.models.edges.push([vOldLength+0, vOldLength+4]);
-    scene.models.edges.push([vOldLength+1, vOldLength+5]);
-    scene.models.edges.push([vOldLength+2, vOldLength+6]);
-    scene.models.edges.push([vOldLength+3, vOldLength+7]);
+    edges.push([0, 2, 3, 1, 0]);
+    edges.push([4, 6, 7, 5, 4]);
+    edges.push([0, 4]);
+    edges.push([1, 5]);
+    edges.push([2, 6]);
+    edges.push([3, 7]);
+
+    drawSceneHelper(vertices, edges);
 }
 
-function drawCone(center, radius, height, sides)
+function drawCone(center, radius, height, sides, currenTheta, axis)
 {
-    let vOldLength = scene.models.vertices.length;
+    let vertices = [];
+    let edges = [];
 
-    scene.models.vertices.push(Vector4(center.x, center.y+height, center.z, 1));   //tip of the cone
+    //assign vertices
+    vertices.push(Vector4(center[0], center[1]+height, center[2], 1));   //tip of the cone
+
     for (let i=0; i<sides; i++)
     {
-        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
-        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
-        scene.models.vertices.push(Vector4(x, center.y, z, 1));
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center[0];
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center[2];
+        vertices.push(Vector4(x, center[1], z, 1));
     }//generate vertices for bottom circle
 
     //connect vertices
     for (let i=0; i<sides-1; i++)
     {
-        scene.models.edges.push([i+vOldLength+1, i+vOldLength+2, vOldLength]);
+        edges.push([i+1, i+2, 0]);
     }
-    scene.models.edges.push([sides+vOldLength, vOldLength+1, vOldLength]);
+    edges.push([sides, 1, 0]);
+
+    //call draw scene
+    drawSceneHelper(vertices, edges);
 }
 
-function drawCylinder(center, radius, height, sides)
+function drawCylinder(center, radius, height, sides, currenTheta, axis)
 {
-    let vOldLength = scene.models.vertices.length;
+    let vertices = [];
+    let edges = [];
 
     for (let i=0; i<sides; i++)
     {
-        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
-        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
-        scene.models.vertices.push(Vector4(x, center.y+height/2, z, 1));
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center[0];
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center[2];
+        vertices.push(Vector4(x, center[1]+height/2, z, 1));
     }//generate vertices for top circle
 
     for (let i=0; i<sides; i++)
     {
-        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
-        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
-        scene.models.vertices.push(Vector4(x, center.y-height/2, z, 1));
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center[0];
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center[2];
+        vertices.push(Vector4(x, center[1]-height/2, z, 1));
     }//generate vertices for bottom circle
 
     //connect vertices
-    for(let i = vOldLength; i<vOldLength+sides-1; i++)
+    for(let i = 0; i<sides-1; i++)
     {
-        scene.models.edges.push([i, i+1, i+sides+1, i+sides]);
+        edges.push([i, i+1, i+sides+1, i+sides]);
     }
-    scene.models.edges.push([vOldLength, vOldLength+sides-1]);
-    scene.models.edges.push([vOldLength+sides, vOldLength+sides*2-1]);
-    scene.models.edges.push([vOldLength, vOldLength+sides]);
+    edges.push([0, sides-1]);
+    edges.push([sides, sides*2-1]);
+    edges.push([0, sides]);
+
+    //call draw scene
+    drawSceneHelper(vertices, edges);
 }
 
-function drawSphere(center, radius, slices, stacks)
+function drawSphere(center, radius, slices, stacks, currenTheta, axis)
 {
+    let vertices = [];
+    let edges = [];
+
     //draw stacks
     for(let i=0; i<stacks; i++)
     {
@@ -678,8 +741,7 @@ function drawSphere(center, radius, slices, stacks)
         let theta = Math.acos(h/radius);
         let r = Math.tan(theta)*h;
 
-        let stackCenter = {"x": center.x, "y": h+center.y, "z": center.z};
-        drawCircleY(stackCenter, r, 15);
+        drawCircleY([center[0], center[1]+h, center[2]], r, 15, vertices, edges);
     }
 
     //draw slices
@@ -690,56 +752,57 @@ function drawSphere(center, radius, slices, stacks)
         let theta = Math.acos(d/radius);
         let r = Math.tan(theta)*d;
 
-        let sliceCenter = {"x": center.x, "y": center.y, "z": d+center.z};
-        drawCircleZ(sliceCenter, r, 15);
+        drawCircleZ([center[0], center[1], center[2]+d], r, 15, vertices, edges);
     }
+
+    drawSceneHelper(vertices, edges);
 }
 
 
-//draw circle facing in y-axis
-function drawCircleY(center, radius, sides)
+//draw circle facing in y-axis by updating the vertices and edges arrays passed in
+function drawCircleY(center, radius, sides, vertices, edges)
 {
-    let vOldLength = scene.models.vertices.length;
+    let vOldLength = vertices.length;
 
     //add vertices
     for (let i=0; i<sides; i++)
     {
-        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
-        let z = Math.sin(2 * i * Math.PI / sides) * radius + center.z;
-        scene.models.vertices.push(Vector4(x, center.y, z, 1));
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center[0];
+        let z = Math.sin(2 * i * Math.PI / sides) * radius + center[2];
+        vertices.push(Vector4(x, center[1], z, 1));
     }
 
     //connect vertices
-    let edges = [];
+    let edgesAdd = [];
     for (let i=vOldLength; i<vOldLength+sides; i++)
     {
-        edges.push(i);
+        edgesAdd.push(i);
     }
-    edges.push(vOldLength);
-    scene.models.edges.push(edges);
+    edgesAdd.push(vOldLength);
+    edges.push(edgesAdd);
 }
 
-//draw circle facing in z-axis
-function drawCircleZ(center, radius, sides)
+//draw circle facing in z-axis by updating the vertices and edges arrays passed in
+function drawCircleZ(center, radius, sides, vertices, edges)
 {
-    let vOldLength = scene.models.vertices.length;
+    let vOldLength = vertices.length;
 
     //add vertices
     for (let i=0; i<sides; i++)
     {
-        let x = Math.cos(2 * i * Math.PI / sides) * radius + center.x;
-        let y = Math.sin(2 * i * Math.PI / sides) * radius + center.y;
-        scene.models.vertices.push(Vector4(x, y, center.z, 1));
+        let x = Math.cos(2 * i * Math.PI / sides) * radius + center[0];
+        let y = Math.sin(2 * i * Math.PI / sides) * radius + center[1];
+        vertices.push(Vector4(x, y, center[2], 1));
     }//generate vertices for top circle
 
     //connect vertices
-    let edges = [];
+    let edgesAdd = [];
     for (let i=vOldLength; i<vOldLength+sides; i++)
     {
-        edges.push(i);
+        edgesAdd.push(i);
     }
-    edges.push(vOldLength);
-    scene.models.edges.push(edges);
+    edgesAdd.push(vOldLength);
+    edges.push(edgesAdd);
 }
 
 
