@@ -25,7 +25,7 @@ function init() {
     scene = {
         view: {
             type: 'perspective',
-            prp:  Vector3(44, 15, -16),//Vector3(44, 20, -16),
+            prp:  Vector3(20, 15, -16),//Vector3(44, 20, -16),
             srp:  Vector3(20, 15, -40),//Vector3(20, 20, -40),
             vup:  Vector3(0,1,0),//Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]//[-19, 5, -10, 8, 12, 100]
@@ -46,9 +46,9 @@ function init() {
                     Vector4(10, 20, -60, 1),
                     Vector4( 0, 12, -60, 1)
                 ],
-                "animation": {
-                    "axis": "z",
-                    "rps": .25},
+               // "animation": {
+                //    "axis": "z",
+                //    "rps": .25},
                 edges: [
                     [0, 1, 2, 3, 4, 0],
                     [5, 6, 7, 8, 9, 5],
@@ -68,9 +68,9 @@ function init() {
                 "width": 8,
                 "height": 8,
                 "depth": 8,
-                "animation": {
-                    "axis": "z",
-                    "rps": .25}
+                //"animation": {
+                //    "axis": "z",
+                //    "rps": .25}
             },
             {
                 "type": "cone",
@@ -78,9 +78,9 @@ function init() {
                 "radius": 8,
                 "height": 8,
                 "sides": 16,
-                "animation": {
+                /*"animation": {
                     "axis": "z",
-                    "rps": .25}
+                    "rps": .25}*/
             },
             {
                 "type": "cylinder",
@@ -88,9 +88,9 @@ function init() {
                 "radius": 3,
                 "height": 10,
                 "sides": 16,
-                "animation": {
+                /*"animation": {
                     "axis": "z",
-                    "rps": .25}
+                    "rps": .25}*/
             },
             {
                 "type": "sphere",
@@ -98,9 +98,9 @@ function init() {
                 "radius": 4,
                 "slices": 16,
                 "stacks": 16,
-                "animation": {
+                /*"animation": {
                     "axis": "z",
-                    "rps": .25}
+                    "rps": .25}*/
             }
         ]
     };
@@ -117,10 +117,8 @@ function init() {
 function animate(timestamp) {
     //calculate time
     let time = timestamp - start_time;
-
     //drawScene
     drawScene(time);
-
     //request next animation frame
      window.requestAnimationFrame(animate);
 }
@@ -129,14 +127,17 @@ function animate(timestamp) {
 function drawScene(time)
 {
     clearScene();
+    //for the models
     for (let model of scene.models)
     {
-        let theta = 0;
+        //set theta and axis
+        let theta = 0; 
         let axis = null;
+        //if animate
         if (model.animation !== undefined)
         {
+            //get theta and axis
             theta = model.animation.rps*time/1000*Math.PI*2 % (Math.PI*2);
-            // console.log(theta);
             axis = model.animation.axis;
         }
         //call different draw methods based on model type
@@ -147,133 +148,120 @@ function drawScene(time)
         else if (model.type === 'sphere')   {drawSphere(model.center, model.radius, model.slices, model.stacks, theta, axis);}
     }
 }
-
+//function to draw generic models
 function drawGeneric(vertices, edges, currentTheta, axis)
 {
+    //make new array
     let verticesCopy = [];
+    //set center
     let center = [0,0,0];
+    //for all teh vertices
     for (vertex of vertices)
     {
+        //add to copy
         verticesCopy.push(vertex);
+        //get center
         center[0] = vertex.x + center[0];
         center[1] = vertex.y + center[1];
         center[2] = vertex.z + center[2];
     }
+    //get center
     center[0] = center[0] / vertices.length;
     center[1] = center[1] / vertices.length;
     center[2] = center[2] / vertices.length;
-
+    //rotate model
     rotation(center, currentTheta, axis, verticesCopy);
     drawSceneHelper(verticesCopy, edges);
 }
 
-
+//helped function to draw the scene
 function drawSceneHelper(vertices, edges)
 {
     //perspective view
     if(scene.view.type == 'perspective')
     {
+        //get nPer
         let nPer = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-    
+        //matrix to fit model to screen
         let V = new Matrix(4,4);
         V.values= ([view.width/2, 0, 0, view.width/2,
                     0, view.height/2, 0, view.height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1]);
-        
+        //loop through all edges of model
         for(let i=0; i<edges.length; i++)
         {
             let edge = edges[i];
-    
             for (let j=0; j<edge.length-1; j++)
             {
+                //get the points of an edge
                 let pt0 = new Vector4(vertices[edge[j]].x, vertices[edge[j]].y, vertices[edge[j]].z, vertices[edge[j]].w);
                 let pt1 = new Vector4(vertices[edge[j+1]].x, vertices[edge[j+1]].y, vertices[edge[j+1]].z, vertices[edge[j+1]].w);
-    
                 //multiplying new points by nPer
                 let pt0New = Matrix.multiply([nPer, pt0]);
                 let pt1New = Matrix.multiply([nPer, pt1]);            
-    
                 //clip
                 let line = {"pt0": pt0New, "pt1": pt1New};
                 let newLine = clipLinePerspective(line, scene.view.clip[4]);
-    
                 //multiply by mPer and scale to frame size
                 if (newLine != null)
                 {
                     //multiply by mPer
                     pt0New = Matrix.multiply([mat4x4MPer(), newLine.pt0]);
                     pt1New = Matrix.multiply([mat4x4MPer(), newLine.pt1]);
-    
                     //scale to frame size                    
                     pt0New = Matrix.multiply([V, pt0New]);
                     pt1New = Matrix.multiply([V, pt1New]);
-
                     //change x,y,w to x,y
                     pt0New.x = pt0New.x/pt0New.w;
                     pt0New.y = pt0New.y/pt0New.w
                     pt1New.x = pt1New.x/pt1New.w;
                     pt1New.y = pt1New.y/pt1New.w;
-                    
                     //draw 2d line
                     drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
                 }
-                
             }
         }
     }
     //parallel view
     else
     {
+        //get nPar
         let nPar = mat4x4Parallel(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
-        //console.log(nPar);
+        //matrix to make model fit screen
         let V = new Matrix(4,4);
         V.values= ([view.width/2, 0, 0, view.width/2,
                     0, view.height/2, 0, view.height/2,
                     0, 0, 1, 0,
                     0, 0, 0, 1]);
-        //console.log(V);
-        //transform = good!
-        
+        //loop through all the edges in model
         for(let i=0; i<edges.length; i++)
         {
             let edge = edges[i];
-    
             for (let j=0; j<edge.length-1; j++)
             {
-                ///console.log("edge " + edge[j] + ", " + edge[j+1]);
                 let pt0 = new Vector4(vertices[edge[j]].x, vertices[edge[j]].y, vertices[edge[j]].z, vertices[edge[j]].w);
                 let pt1 = new Vector4(vertices[edge[j+1]].x, vertices[edge[j+1]].y, vertices[edge[j+1]].z, vertices[edge[j+1]].w);
-                
-
                 //multiplying new points by nPer
                 let pt0New = Matrix.multiply([nPar, pt0]);
                 let pt1New = Matrix.multiply([nPar, pt1]);
-                
                 //clip
                 let line = {"pt0": pt0New, "pt1": pt1New};
                 let newLine = clipLineParallel(line);
-    
                 //multiply by mPer and scale to frame size
                 if (newLine != null)
                 {
                     //multiply by mPer
                     pt0New = Matrix.multiply([mat4x4MPar(), newLine.pt0]);
-                    //pt0New = Matrix.multiply([mat4x4MPar(), pt0New]);
-                    //console.log(pt0New, "new");
                     pt1New = Matrix.multiply([mat4x4MPar(), newLine.pt1]);
-                    //pt1New = Matrix.multiply([mat4x4MPar(),pt1New]);
-    
                     //scale to frame size                    
                     pt0New = Matrix.multiply([V, pt0New]);
                     pt1New = Matrix.multiply([V, pt1New]);
-                    
-
+                    //make it fit screen
                     pt0New.x = pt0New.x/pt0New.w;
                     pt0New.y = pt0New.y/pt0New.w;
                     pt1New.x = pt1New.x/pt1New.w;
                     pt1New.y = pt1New.y/pt1New.w;
-                    
                     //draw 2d line
                     drawLine(pt0New.x, pt0New.y, pt1New.x, pt1New.y);
                 }   
@@ -525,7 +513,7 @@ function getIntersectionPointParallel(outcode, line)
                                         line.pt0.w);
         
 
-        console.log(intersectionPoint)
+        //console.log(intersectionPoint)
         return intersectionPoint;
     }
     else
@@ -552,43 +540,53 @@ function onKeyDown(event)
     let ry = new Matrix(4,4);
     let rz = new Matrix(4,4);
     let t2 = new Matrix(4,4);
+    let rot = new Matrix(4,4);
 
+    //left and right arrow, ask why it's broken
     if(scene.view.type == 'perspective'){
-        //left and right arrow, ask why it's broken
+    
         switch (event.keyCode)
         {
             case 37: // LEFT Arrow
             //rotate srp counter-clockwise about prp according to v-axis
             newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1 vector
             Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
-            Mat4x4RotateX(rx, 0.01*v.x);                                                    //rotate according to v-axis
-            Mat4x4RotateY(ry, 0.01*v.y);
-            Mat4x4RotateZ(rz, 0.01*v.z);
+            //Mat4x4RotateX(rx, 0.01*v.x);                                                    //rotate according to v-axis
+            //Mat4x4RotateY(ry, 0.01*v.y);
+            //Mat4x4RotateZ(rz, 0.01*v.z);
+            vRotate(rot, scene.view.srp, -.01);
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
-            newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
-            console.log(newSrp.x, newSrp.y, newSrp.z, "srp")
-            console.log(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, "prp")
+            //newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
+            //console.log(newSrp.x, newSrp.y, newSrp.z, "srp")
+            //console.log(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z, "prp")
+            newSrp = Matrix.multiply([t2,rot,t1,newSrp]);                         //apply transforms
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
 
             clearScene();
             drawScene();
             console.log("left");
             break;
+
+
             case 39: // RIGHT Arrow
             //rotate srp clockwise about prp according to v-axis
             newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1 vector
             Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
-            Mat4x4RotateX(rx, -0.01*v.x);                                                   //rotate according to v-axis
-            Mat4x4RotateY(ry, -0.01*v.y);
-            Mat4x4RotateZ(rz, -0.01*v.z);
+            //Mat4x4RotateX(rx, -0.01*v.x);                                                   //rotate according to v-axis
+            //Mat4x4RotateY(ry, -0.01*v.y);
+            //Mat4x4RotateZ(rz, -0.01*v.z);
+            vRotate(rot, scene.view.srp, .01);
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
-            newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
-            console.log(newSrp, "srp")
+            //newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
+            //console.log(newSrp.x, newSrp.y, newSrp.z, "srp right")
+            newSrp = Matrix.multiply([t2,rot,t1,newSrp]); 
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
 
             clearScene();
             drawScene();
             console.log("right");
+
+
             break;
             case 65: // A key
             scene.view.prp = scene.view.prp.subtract(u);
@@ -614,7 +612,7 @@ function onKeyDown(event)
             clearScene();
             drawScene();
             break;
-            case 87: // W key
+            case 87: // W key ---- broken 
             scene.view.prp = scene.view.prp.subtract(n);
             scene.view.srp = scene.view.srp.subtract(n);
 
@@ -624,7 +622,10 @@ function onKeyDown(event)
             break;
         }
     }
+    //s and w dont work correctly
+    //left and right about origin
     if(scene.view.type == 'parallel'){
+        
 
         switch (event.keyCode)
         {
@@ -632,14 +633,10 @@ function onKeyDown(event)
             //rotate srp counter-clockwise about prp according to v-axis
             newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1 vector
             Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
-            Mat4x4RotateX(rx, 0.01*v.x);                                                    //rotate according to v-axis
-            Mat4x4RotateY(ry, 0.01*v.y);
-            Mat4x4RotateZ(rz, 0.01*v.z);
+            vRotate(rot, scene.view.srp, -.01);
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
-            newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
-            console.log(newSrp.x, newSrp.y, newSrp.z, "srp")
+            newSrp = Matrix.multiply([t2,rot,t1,newSrp]);                         //apply transforms
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
-
             clearScene();
             drawScene();
             console.log("left");
@@ -648,22 +645,19 @@ function onKeyDown(event)
             //rotate srp clockwise about prp according to v-axis
             newSrp = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);      //convert srp to 4x1 vector
             Mat4x4Translate(t1, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);   //translate prp to origin
-            Mat4x4RotateX(rx, -0.01*v.x);                                                   //rotate according to v-axis
-            Mat4x4RotateY(ry, -0.01*v.y);
-            Mat4x4RotateZ(rz, -0.01*v.z);
+            vRotate(rot, scene.view.srp, .01);
             Mat4x4Translate(t2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);      //translate prp back
-            newSrp = Matrix.multiply([t2, rx, ry, rz, t1, newSrp]);                         //apply transforms
-            console.log(newSrp, "srp")
+            newSrp = Matrix.multiply([t2,rot,t1,newSrp]);                         //apply transforms
             scene.view.srp = Vector3(newSrp.x, newSrp.y, newSrp.z);                         //set srp
 
             clearScene();
             drawScene();
             console.log("right");
             break;
-            case 65: // A key
 
-            scene.view.prp = scene.view.prp.add(u);
-            scene.view.srp = scene.view.srp.add(u);
+            case 65: // A key -- good
+            scene.view.prp = scene.view.prp.subtract(u);
+            scene.view.srp = scene.view.srp.subtract(u);
             
             console.log("A");
             clearScene();
@@ -677,9 +671,9 @@ function onKeyDown(event)
             //clearScene();
             //drawScene();
             break;
-            case 68: // D key
-            scene.view.prp = scene.view.prp.subtract(u);
-            scene.view.srp = scene.view.srp.subtract(u);
+            case 68: // D key -- good for per & par
+            scene.view.prp = scene.view.prp.add(u);
+            scene.view.srp = scene.view.srp.add(u);
 
             console.log("D");
             clearScene();
@@ -693,7 +687,7 @@ function onKeyDown(event)
             //clearScene();
             //drawScene();
             break;
-            case 83: // S key
+            case 83: // S key -- good for per -- wrong for par
             scene.view.prp = scene.view.prp.add(n);
             scene.view.srp = scene.view.srp.add(n);
 
@@ -701,7 +695,7 @@ function onKeyDown(event)
             clearScene();
             drawScene();
             break;
-            case 87: // W key
+            case 87: // W key -- good for per -- wrong for par
             scene.view.prp = scene.view.prp.subtract(n);
             scene.view.srp = scene.view.srp.subtract(n);
 
