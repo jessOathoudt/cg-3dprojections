@@ -1,0 +1,73 @@
+{
+    "view": {
+        "type": "perspective",
+        "prp":  [60, 5, -15],
+        "srp":  [30, 5, -45],
+        "vup":  [0,1,0],
+        "clip": [-19, 5, -10, 8, 12, 100]
+    },
+    "models":
+    [
+        {
+            "type": "generic",
+            "vertices": [
+                            [0,  0, -30, 1],
+                            [20,  0, -30, 1],
+                            [20, 12, -30, 1],
+                            [10, 20, -30, 1],
+                            [0, 12, -30, 1],
+                            [0,  0, -60, 1],
+                            [20,  0, -60, 1],
+                            [20, 12, -60, 1],
+                            [10, 20, -60, 1],
+                            [0, 12, -60, 1]
+                        ],
+            "edges": [
+                        [0, 1, 2, 3, 4, 0],
+                        [5, 6, 7, 8, 9, 5],
+                        [0, 5],
+                        [1, 6],
+                        [2, 7],
+                        [3, 8],
+                        [4, 9]
+                     ],
+            "animation": {"axis": "z", "rps": 0.25}
+        },
+
+        {
+            "type": "cube",
+            "center": [20, -10, -60],
+            "width": 8,
+            "height": 8,
+            "depth": 8,
+            "animation": {"axis": "z", "rps": 0.25}
+        },
+
+        {
+            "type": "cone",
+            "center": [20, -10, -40],
+            "radius": 8,
+            "height": 8,
+            "sides": 16,
+            "animation": {"axis": "z", "rps": 0.25}
+        },
+
+        {
+            "type": "cylinder",
+            "center": [20, -10, -25],
+            "radius": 3,
+            "height": 10,
+            "sides": 16,
+            "animation": {"axis": "z", "rps": 0.25}
+        },
+
+        {
+            "type": "sphere",
+            "center": [20, -10, -15],
+            "radius": 4,
+            "slices": 16,
+            "stacks": 16,
+            "animation": {"axis": "z", "rps": 0.25}
+        }
+    ]
+}

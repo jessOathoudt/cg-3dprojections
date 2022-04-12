@@ -24,9 +24,9 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel',
-            prp:  Vector3(20, 15, -16),//Vector3(44, 20, -16),
-            srp:  Vector3(20, 15, -40),//Vector3(20, 20, -40),
+            type: 'perspective',
+            prp:  Vector3(60, 5, -15),//Vector3(44, 20, -16),
+            srp:  Vector3(30, 5, -45),//Vector3(20, 20, -40),
             vup:  Vector3(0,1,0),//Vector3(0, 1, 0),
             clip: [-19, 5, -10, 8, 12, 100]//[-19, 5, -10, 8, 12, 100]
         },
@@ -46,9 +46,9 @@ function init() {
                     Vector4(10, 20, -60, 1),
                     Vector4( 0, 12, -60, 1)
                 ],
-               // "animation": {
-                //    "axis": "z",
-                //    "rps": .25},
+               "animation": {
+                   "axis": "z",
+                   "rps": .25},
                 edges: [
                     [0, 1, 2, 3, 4, 0],
                     [5, 6, 7, 8, 9, 5],
@@ -64,43 +64,43 @@ function init() {
             },
             {
                 "type": "cube",
-                "center": [0, 0, -60],
+                "center": [20, -10, -60],
                 "width": 8,
                 "height": 8,
                 "depth": 8,
-                //"animation": {
-                //    "axis": "z",
-                //    "rps": .25}
+                "animation": {
+                   "axis": "y",
+                   "rps": .25}
             },
             {
                 "type": "cone",
-                "center": [0, 0, -40],
+                "center": [20, -10, -40],
                 "radius": 8,
                 "height": 8,
                 "sides": 16,
-                /*"animation": {
-                    "axis": "z",
-                    "rps": .25}*/
+                "animation": {
+                    "axis": "x",
+                    "rps": .25}
             },
             {
                 "type": "cylinder",
-                "center": [0, 0, -25],
+                "center": [20, -10, -25],
                 "radius": 3,
                 "height": 10,
                 "sides": 16,
-                /*"animation": {
-                    "axis": "z",
-                    "rps": .25}*/
+                "animation": {
+                    "axis": "y",
+                    "rps": .25}
             },
             {
                 "type": "sphere",
-                "center": [0, 0, -15],
+                "center": [20, -10, -15],
                 "radius": 4,
                 "slices": 16,
                 "stacks": 16,
-                /*"animation": {
+                "animation": {
                     "axis": "z",
-                    "rps": .25}*/
+                    "rps": .25}
             }
         ]
     };
@@ -126,6 +126,8 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene(time)
 {
+    // console.log(scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);
+    // console.log(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z);
     clearScene();
     //for the models
     for (let model of scene.models)
@@ -709,7 +711,6 @@ function onKeyDown(event)
     }
 
 }
-//ask why sample_scene won't run
 
 ///////////////////////////////////////////////////////////////////////////
 // No need to edit functions beyond this point
@@ -738,10 +739,9 @@ function loadNewScene() {
                 }
             }
             else {
-                scene.models[i].center = Vector4(scene.models[i].center[0],
+                scene.models[i].center = [scene.models[i].center[0],
                                                  scene.models[i].center[1],
-                                                 scene.models[i].center[2],
-                                                 1);
+                                                 scene.models[i].center[2]];
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
